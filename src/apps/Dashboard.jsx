@@ -81,7 +81,7 @@ export default function Dashboard() {
             {getGreeting()}, {db.settings?.username || 'User'}.
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '15px' }}>
-            Welcome back to gryndset. All systems operational. Your data is stored locally.
+            Welcome back to gryndset. Own your grind. Stored locally.
           </p>
         </div>
       </section>

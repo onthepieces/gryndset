@@ -68,7 +68,7 @@ export default function OnboardingScreen() {
             <div className="onboarding-step-view fade-in">
               <div className="onboarding-header">
                 <div className="onboarding-logo">
-                  gryndset<span>// workspace</span>
+                  gryndset<span>// own your grind</span>
                 </div>
                 <h1>Welcome to your new workspace</h1>
                 <p>Let's personalize your dashboard. What should we call you?</p>
@@ -189,7 +189,7 @@ export default function OnboardingScreen() {
                   <Check size={32} />
                 </div>
                 <h1>You're all set!</h1>
-                <p>Welcome to your local-first productivity workspace.</p>
+                <p>Welcome to your local-first workspace. Own your grind.</p>
               </div>
 
               <div className="summary-confirm-card glass-card">
