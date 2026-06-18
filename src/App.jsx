@@ -11,11 +11,17 @@ import HabitsApp from './apps/HabitsApp';
 import NotesApp from './apps/NotesApp';
 import InvestmentsApp from './apps/InvestmentsApp';
 import SettingsApp from './apps/SettingsApp';
+import OnboardingScreen from './components/OnboardingScreen';
 
 import './App.css';
 
 function AppContent() {
-  const { activeApp } = useOS();
+  const { activeApp, db } = useOS();
+  const isOnboarded = db.settings?.onboarded;
+
+  if (isOnboarded === false) {
+    return <OnboardingScreen />;
+  }
 
   const renderActiveApp = () => {
     switch (activeApp) {

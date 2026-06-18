@@ -15,7 +15,7 @@ export const OSProvider = ({ children }) => {
   
   const sanitizeDb = (parsed) => {
     const defaultData = {
-      settings: { username: 'User', currency: '₹' },
+      settings: { username: 'User', currency: '₹', onboarded: false },
       finance: {
         budget: 0,
         monthlyTarget: 0,
@@ -59,7 +59,11 @@ export const OSProvider = ({ children }) => {
       return {
         ...defaultData,
         ...parsed,
-        settings: { ...defaultData.settings, ...parsed.settings },
+        settings: { 
+          ...defaultData.settings, 
+          onboarded: parsed.settings?.onboarded !== undefined ? parsed.settings.onboarded : true, 
+          ...parsed.settings 
+        },
         finance: { 
           ...defaultData.finance, 
           ...parsed.finance,
@@ -574,11 +578,30 @@ export const OSProvider = ({ children }) => {
     setDb((prev) => ({
       ...prev,
       settings: {
+        ...prev.settings,
         username: username.trim() || prev.settings.username,
         currency: currency.trim() || prev.settings.currency
       }
     }));
     triggerToast('Settings updated', 'success');
+  };
+
+  const completeOnboarding = (username, currency, budget, monthlyTarget, yearlyTarget) => {
+    setDb((prev) => ({
+      ...prev,
+      settings: {
+        username: username.trim() || 'User',
+        currency: currency.trim() || '₹',
+        onboarded: true
+      },
+      finance: {
+        ...prev.finance,
+        budget: parseFloat(budget) || 0,
+        monthlyTarget: parseFloat(monthlyTarget) || 0,
+        yearlyTarget: parseFloat(yearlyTarget) || 0
+      }
+    }));
+    triggerToast('Welcome to gryndset!', 'success');
   };
 
   const updateFinanceTargets = (budget, monthlyTarget, yearlyTarget) => {
@@ -795,6 +818,7 @@ export const OSProvider = ({ children }) => {
         setFilterYear,
         // Settings & General
         updateSettings,
+        completeOnboarding,
         // Finance
         setFinanceBudget,
         addTransaction,
