@@ -7,6 +7,12 @@
 
 A premium, local-first dashboard shell built for freelancers. **gryndset** is styled with a sleek glassmorphic dark-mode interface and fully optimized for desktop, tablet, and mobile viewports. It provides a suite of productivity and finance tracking tools while keeping 100% of user data strictly on their local device.
 
+👉 **[Live Demo Site](https://gryndset.netlify.app/)** — Explore the application live!
+
+> [!IMPORTANT]
+> **Strictly Local Storage & Privacy**
+> This application is strictly local-first. All your data is stored directly in your browser's local storage (`localStorage`). No accounts are required, and no data is ever transmitted, tracked, or saved to any cloud servers. Since your data lives only in your browser, make sure to regularly export backups from the **Settings** panel to safeguard your records.
+
 For detailed guides, usage instructions, and features of each tool, check out the **[Documentation Wiki](wiki/Home.md)** folder in this repository.
 
 ---
