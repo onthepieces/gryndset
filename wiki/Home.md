@@ -27,6 +27,6 @@ Click any of the sections below to read detailed specifications:
 
 Every feature in **gryndset** is designed to run **locally in your browser**. No user data is ever transmitted, logged, or shared over the internet.
 To safeguard your database configurations:
-* Regularly navigate to the **[Settings App](DashboardOverview.md#settings-app)** to export JSON backups.
+* Regularly navigate to **[Settings](DashboardOverview.md#settings)** to export JSON backups.
 * Save your JSON backup file securely on your computer or cloud storage.
 * If you clear browser cookies or cookies expire, simply import your JSON backup to restore your exact dashboard state.

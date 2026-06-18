@@ -60,7 +60,7 @@ Unlike modern web applications that sync your credentials and data to cloud serv
 3. **No Login Required**: The dashboard is instantly usable out of the box.
 
 ### Database Backups
-To prevent data loss (e.g. from clearing browser cookies/cache), you can use the **Database Maintenance** panel in the **Settings App** to export your entire data profile as a portable JSON file. You can import this JSON file on any browser or device running gryndset to restore your workspace.
+To prevent data loss (e.g. from clearing browser cookies/cache), you can use the **Database Maintenance** panel in **Settings** to export your entire data profile as a portable JSON file. You can import this JSON file on any browser or device running gryndset to restore your workspace.
 
 ---
 
@@ -132,7 +132,7 @@ Since **gryndset** compiles into clean, static HTML/JS/CSS assets, you can deplo
 ---
 
 ## 🎨 Built by On The Pieces
-**gryndset** is designed and maintained by **On The Pieces**. We build bespoke, highly functional, and visually premium tools and designs.
+**gryndset** is designed and maintained by **On The Pieces**. We build bespoke, highly functional, and visually premium tools for modern freelancers and small studios.
 
 * **Website**: [onthepieces.in](https://onthepieces.in/)
 * **Platform**: Local-First Product Suite

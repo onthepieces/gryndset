@@ -32,7 +32,7 @@ Press `Ctrl + K` (Windows/Linux) or `Cmd + K` (macOS) from anywhere in the app t
 
 ---
 
-## ⚙️ Settings App & Backups
+## ⚙️ Settings & Backups
 
 Accessible via the gear icon in the navigation dock:
 * **Username & Currency**: Customize your profile name and BCP 47 locale currency (`₹`, `$`, `€`, `£`, `¥`, `₽`).
