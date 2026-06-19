@@ -1,0 +1,36 @@
+# This workflow compiles the Vite dashboard and publishes it to GitHub Packages when a release is created.
+
+name: Publish Node.js Package
+
+on:
+  release:
+    types: [created, published]
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          registry-url: 'https://npm.pkg.github.com'
+          # 👇 REPLACE "YOUR_GITHUB_USERNAME" with your actual GitHub username (e.g., '@anish')
+          scope: '@anishhbaxi'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build static dashboard assets
+        run: npm run build
+
+      - name: Publish to GitHub Packages
+        run: npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
