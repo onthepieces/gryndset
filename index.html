@@ -2,7 +2,25 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link id="favicon" rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <script>
+      (function() {
+        const matcher = window.matchMedia('(prefers-color-scheme: dark)');
+        function updateFavicon() {
+          const link = document.getElementById('favicon');
+          if (link) {
+            link.href = `/favicon.svg?v=${matcher.matches ? 'dark' : 'light'}`;
+          }
+        }
+        // Use addEventListener or fallback to addListener for older browsers
+        if (matcher.addEventListener) {
+          matcher.addEventListener('change', updateFavicon);
+        } else if (matcher.addListener) {
+          matcher.addListener(updateFavicon);
+        }
+        updateFavicon();
+      })();
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
