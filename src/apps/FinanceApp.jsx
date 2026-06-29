@@ -1031,7 +1031,7 @@ export default function FinanceApp() {
       {/* Edit Transaction Modal Overlay */}
       {editingTx && (
         <div className="cmd-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 0 }} onClick={() => setEditingTx(null)}>
-          <div className="glass-panel" style={{ width: '420px', borderRadius: '14px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: 'var(--glass-shadow)' }} onClick={(e) => e.stopPropagation()}>
+          <div className="glass-panel" style={{ width: '420px', maxWidth: '90%', borderRadius: '14px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: 'var(--glass-shadow)' }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
               <h3 style={{ fontSize: '16px' }}>Edit Transaction Ledger</h3>
               <button onClick={() => setEditingTx(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex' }}><X size={18} /></button>

@@ -1,6 +1,6 @@
 {
-  "name": "@YOUR_GITHUB_USERNAME/gryndset",
-  "version": "1.0.0",
+  "name": "@onthepieces/gryndset",
+  "version": "1.0.1",
   "type": "module",
   "publishConfig": {
     "registry": "https://npm.pkg.github.com"
@@ -32,10 +32,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/YOUR_GITHUB_USERNAME/gryndset.git"
+    "url": "git+https://github.com/onthepieces/gryndset.git"
   },
   "bugs": {
-    "url": "https://github.com/YOUR_GITHUB_USERNAME/gryndset/issues"
+    "url": "https://github.com/onthepieces/gryndset/issues"
   },
-  "homepage": "https://github.com/YOUR_GITHUB_USERNAME/gryndset#readme"
+  "homepage": "https://github.com/onthepieces/gryndset#readme"
 }

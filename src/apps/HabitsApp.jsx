@@ -91,8 +91,8 @@ export default function HabitsApp() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         
         {/* Toolbar & Filters */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
-          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+        <div className="habit-toolbar">
+          <div className="habit-filters-container">
             {['All', ...habitCategories].map(cat => (
               <button
                 key={cat}
@@ -106,7 +106,7 @@ export default function HabitsApp() {
           </div>
           <button 
             onClick={() => setIsManageCatsOpen(true)} 
-            className="glass-btn" 
+            className="glass-btn habit-manage-cats-btn" 
             style={{ padding: '6px 12px', fontSize: '12px' }}
           >
             Manage Categories
@@ -123,17 +123,10 @@ export default function HabitsApp() {
             filteredHabits.map(habit => (
               <div 
                 key={habit.id} 
-                className="glass-card" 
-                style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  justifyContent: 'space-between',
-                  padding: '16px 20px',
-                  background: 'rgba(20, 20, 25, 0.4)'
-                }}
+                className="glass-card habit-card" 
               >
                 {/* Habit details */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxWidth: '240px' }}>
+                <div className="habit-details">
                   <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <span style={{ color: 'var(--text-secondary)' }}>{getCatIcon(habit.category)}</span>
                     <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--text-pure)' }}>{habit.name}</h4>
@@ -149,7 +142,7 @@ export default function HabitsApp() {
                 </div>
 
                 {/* 7 Days checklist */}
-                <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                <div className="habit-checklist">
                   {weekDays.map(day => {
                     const isCompleted = habit.history[day.dateStr];
                     const isToday = day.dateStr === todayStr;
@@ -157,34 +150,23 @@ export default function HabitsApp() {
                       <div 
                         key={day.dateStr}
                         onClick={() => toggleHabitDate(habit.id, day.dateStr)}
-                        style={{ 
-                          display: 'flex', 
-                          flexDirection: 'column', 
-                          alignItems: 'center', 
-                          gap: '6px',
-                          cursor: 'pointer'
-                        }}
+                        className="habit-checklist-day"
                       >
-                        <span style={{ fontSize: '9px', textTransform: 'uppercase', color: isToday ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: isToday ? '700' : 'normal' }}>
+                        <span className="habit-day-name" style={{ color: isToday ? 'var(--text-primary)' : 'var(--text-secondary)', fontWeight: isToday ? '700' : 'normal' }}>
                           {day.dayName}
                         </span>
                         
-                        <div style={{ 
-                          width: '32px', 
-                          height: '32px', 
-                          borderRadius: '8px', 
-                          border: isToday ? '1px solid var(--text-pure)' : '1px solid var(--border-subtle)',
-                          background: isCompleted ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.3)',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'var(--text-pure)',
-                          transition: 'var(--transition-smooth)'
-                        }}>
+                        <div 
+                          className="habit-day-circle"
+                          style={{ 
+                            border: isToday ? '1px solid var(--text-pure)' : '1px solid var(--border-subtle)',
+                            background: isCompleted ? 'rgba(255, 255, 255, 0.15)' : 'rgba(0, 0, 0, 0.3)',
+                          }}
+                        >
                           {isCompleted && <Check size={16} />}
                         </div>
 
-                        <span style={{ fontSize: '10px', color: 'var(--text-muted)' }}>
+                        <span className="habit-day-num">
                           {day.dayNum}
                         </span>
                       </div>
@@ -194,14 +176,7 @@ export default function HabitsApp() {
                   {/* Delete button */}
                   <button 
                     onClick={() => deleteHabit(habit.id)}
-                    style={{ 
-                      background: 'none', 
-                      border: 'none', 
-                      cursor: 'pointer', 
-                      color: 'var(--text-muted)',
-                      marginLeft: '12px'
-                    }}
-                    className="glass-btn-icon"
+                    className="glass-btn-icon habit-delete-btn"
                     title="Delete Habit"
                   >
                     <Trash2 size={14} />
@@ -286,7 +261,7 @@ export default function HabitsApp() {
       {/* Modal: Manage Habit Categories */}
       {isManageCatsOpen && (
         <div className="cmd-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: '0' }} onClick={() => setIsManageCatsOpen(false)}>
-          <div className="glass-panel" style={{ width: '420px', borderRadius: '14px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: 'var(--glass-shadow)' }} onClick={(e) => e.stopPropagation()}>
+          <div className="glass-panel" style={{ width: '420px', maxWidth: '90%', borderRadius: '14px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: 'var(--glass-shadow)' }} onClick={(e) => e.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
               <h3 style={{ fontSize: '16px' }}>Manage Habit Categories</h3>
               <button onClick={() => setIsManageCatsOpen(false)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}><X size={18} /></button>

@@ -63,6 +63,7 @@ body {
   font-family: var(--font-sans);
   overflow: hidden;
   height: 100vh;
+  height: 100dvh;
   width: 100vw;
   font-size: 14px;
 }
@@ -255,6 +256,7 @@ h3, h4 {
 .os-container {
   display: flex;
   height: 100vh;
+  height: 100dvh;
   width: 100vw;
   background-color: var(--bg-pure);
   position: relative;
@@ -681,6 +683,79 @@ h3, h4 {
   align-items: start;
 }
 
+.habit-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.habit-filters-container {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.habit-card {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px;
+  background: rgba(20, 20, 25, 0.4);
+  position: relative;
+}
+
+.habit-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-width: 240px;
+}
+
+.habit-checklist {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.habit-checklist-day {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}
+
+.habit-day-name {
+  font-size: 9px;
+  text-transform: uppercase;
+}
+
+.habit-day-circle {
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-pure);
+  transition: var(--transition-smooth);
+}
+
+.habit-day-num {
+  font-size: 10px;
+  color: var(--text-muted);
+}
+
+.habit-delete-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-muted);
+  margin-left: 12px;
+}
+
 /* Prevent global scrollbar when Notes layout is active to avoid scroll fights */
 .os-content:has(.notes-layout) {
   overflow: hidden !important;
@@ -764,14 +839,22 @@ h3, h4 {
     flex-direction: column-reverse;
   }
 
+  .os-workspace {
+    height: auto !important;
+    flex: 1 !important;
+    min-height: 0 !important;
+  }
+
   /* Dock adjustments for bottom navigation */
   .os-dock {
     width: 100% !important;
     min-width: 100% !important;
     max-width: 100% !important;
-    height: 60px !important;
+    height: auto !important;
+    min-height: 60px !important;
     flex-direction: row !important;
     padding: 0 12px !important;
+    padding-bottom: env(safe-area-inset-bottom) !important;
     border-right: none !important;
     border-top: 1px solid var(--border-subtle) !important;
     justify-content: space-around !important;
@@ -1061,7 +1144,11 @@ h3, h4 {
 
   /* Convert transaction ledger table to card list layout on mobile */
   .finance-layout table, 
-  .finance-layout tbody, 
+  .finance-layout tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+  }
   .finance-layout tr, 
   .finance-layout td {
     display: flex !important;
@@ -1174,9 +1261,12 @@ h3, h4 {
   .investment-form > div:nth-child(5) { grid-column: 2 / 3 !important; }
   .investment-form > button { grid-column: 1 / -1 !important; }
 
-  /* Convert investments holdings table to card list layout on mobile */
   .investments-layout table, 
-  .investments-layout tbody, 
+  .investments-layout tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+  }
   .investments-layout tr, 
   .investments-layout td {
     display: flex !important;
@@ -1279,7 +1369,11 @@ h3, h4 {
 
   /* Trade Log history modal table cards on mobile */
   .investments-layout .glass-panel table, 
-  .investments-layout .glass-panel tbody, 
+  .investments-layout .glass-panel tbody {
+    display: flex !important;
+    flex-direction: column !important;
+    width: 100% !important;
+  }
   .investments-layout .glass-panel tr, 
   .investments-layout .glass-panel td {
     display: flex !important;
@@ -1383,6 +1477,69 @@ h3, h4 {
   }
   .investments-layout .glass-panel td[colspan="8"]::before {
     display: none !important;
+  }
+
+  /* Habit Tracker Mobile Adjustments */
+  .habit-toolbar {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px !important;
+  }
+  
+  .habit-filters-container {
+    overflow-x: auto !important;
+    width: 100% !important;
+    padding: 4px 0 !important;
+    flex-wrap: nowrap !important;
+    gap: 8px !important;
+    -webkit-overflow-scrolling: touch;
+  }
+  .habit-filters-container::-webkit-scrollbar {
+    display: none !important;
+  }
+  .habit-filters-container button {
+    white-space: nowrap !important;
+    flex-shrink: 0 !important;
+  }
+
+  .habit-manage-cats-btn {
+    width: 100% !important;
+  }
+
+  .habit-card {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 16px !important;
+    padding: 16px !important;
+    position: relative !important;
+  }
+
+  .habit-details {
+    max-width: 100% !important;
+    width: 100% !important;
+    padding-right: 32px !important;
+  }
+
+  .habit-checklist {
+    width: 100% !important;
+    justify-content: space-between !important;
+    gap: 0 !important;
+  }
+
+  .habit-checklist-day {
+    flex: 1 !important;
+  }
+
+  .habit-day-circle {
+    width: 28px !important;
+    height: 28px !important;
+  }
+
+  .habit-delete-btn {
+    position: absolute !important;
+    top: 12px !important;
+    right: 12px !important;
+    margin-left: 0 !important;
   }
 }
 
