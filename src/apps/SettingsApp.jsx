@@ -8,8 +8,94 @@ import {
   RotateCcw,
   Database,
   Download,
-  Upload
+  Upload,
+  ChevronDown
 } from 'lucide-react';
+
+const GlassSelect = ({ value, onChange, options, style }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find(o => o.value === value) || options[0];
+
+  return (
+    <div ref={containerRef} style={{ position: 'relative', width: 'fit-content', ...style }}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="glass-btn"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '8px',
+          padding: '6px 12px',
+          fontSize: '12px',
+          height: '34px',
+          cursor: 'pointer',
+          width: '100%'
+        }}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {selectedOption?.icon}
+          <span>{selectedOption?.label}</span>
+        </span>
+        <ChevronDown size={12} />
+      </button>
+
+      {isOpen && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 4px)',
+            left: 0,
+            background: 'rgba(18, 18, 20, 0.95)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: '8px',
+            padding: '4px',
+            zIndex: 100,
+            minWidth: '150px'
+          }}
+        >
+          {options.map(opt => (
+            <div
+              key={opt.value}
+              onClick={() => {
+                onChange(opt.value);
+                setIsOpen(false);
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '6px 8px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '11px',
+                color: opt.value === value ? 'var(--text-pure)' : 'var(--text-primary)',
+                background: opt.value === value ? 'rgba(255, 255, 255, 0.08)' : 'transparent'
+              }}
+            >
+              {opt.icon}
+              <span>{opt.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function SettingsApp() {
   const { 
@@ -45,7 +131,7 @@ export default function SettingsApp() {
   };
 
   const handleResetSystem = () => {
-    if (window.confirm('Are you absolutely sure you want to reset the OS data? This will clear all transactions, habits, projects, notes, and investments!')) {
+    if (window.confirm('Are you absolutely sure you want to reset the OS data? This will clear all transactions, habits, projects, and notes!')) {
       localStorage.removeItem('gryndset-data-store');
       triggerToast('System database cleared. Refreshing...', 'danger');
       setTimeout(() => {
@@ -121,19 +207,21 @@ export default function SettingsApp() {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>System Currency Symbol</label>
               <div style={{ display: 'flex', gap: '10px' }}>
-                <select
-                  className="glass-input"
+                <GlassSelect
                   value={currency}
-                  onChange={(e) => setCurrency(e.target.value)}
-                  style={{ cursor: 'pointer', flexGrow: 1 }}
-                >
-                  {popularCurrencies.map(cur => (
-                    <option key={cur.code} value={cur.code} style={{ background: '#121214' }}>{cur.name}</option>
-                  ))}
-                  {!popularCurrencies.some(c => c.code === currency) && (
-                    <option value={currency} style={{ background: '#121214' }}>Custom ({currency})</option>
-                  )}
-                </select>
+                  onChange={(val) => setCurrency(val)}
+                  options={[
+                    ...popularCurrencies.map(cur => ({
+                      value: cur.code,
+                      label: cur.name
+                    })),
+                    ...(!popularCurrencies.some(c => c.code === currency) ? [{
+                      value: currency,
+                      label: `Custom (${currency})`
+                    }] : [])
+                  ]}
+                  style={{ flexGrow: 1 }}
+                />
                 <input
                   type="text"
                   placeholder="Custom"

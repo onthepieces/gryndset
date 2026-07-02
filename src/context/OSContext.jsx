@@ -23,21 +23,20 @@ export const OSProvider = ({ children }) => {
         transactions: [],
         subscriptions: [],
         accounts: [
-          { id: 'acc-cash', name: 'Cash', initialBalance: 0 },
-          { id: 'acc-bank', name: 'Bank Account', initialBalance: 0 }
+          { id: 'acc-cash', name: 'Cash', initialBalance: 0 }
         ],
         categories: [
-          { name: 'General', type: 'expense' },
-          { name: 'Office', type: 'expense' },
-          { name: 'Software', type: 'expense' },
-          { name: 'Infrastructure', type: 'expense' },
-          { name: 'Meals', type: 'expense' },
-          { name: 'Utilities', type: 'expense' },
-          { name: 'Miscellaneous', type: 'expense' },
-          { name: 'General', type: 'income' },
-          { name: 'Salary', type: 'income' },
-          { name: 'Consulting', type: 'income' },
-          { name: 'Invoicing', type: 'income' }
+          { name: 'General', type: 'expense', icon: 'wallet' },
+          { name: 'Office', type: 'expense', icon: 'briefcase' },
+          { name: 'Software', type: 'expense', icon: 'code' },
+          { name: 'Infrastructure', type: 'expense', icon: 'server' },
+          { name: 'Meals', type: 'expense', icon: 'coffee' },
+          { name: 'Utilities', type: 'expense', icon: 'zap' },
+          { name: 'Miscellaneous', type: 'expense', icon: 'help-circle' },
+          { name: 'General', type: 'income', icon: 'credit-card' },
+          { name: 'Salary', type: 'income', icon: 'dollar-sign' },
+          { name: 'Consulting', type: 'income', icon: 'users' },
+          { name: 'Invoicing', type: 'income', icon: 'file-text' }
         ]
       },
       projects: {
@@ -45,12 +44,28 @@ export const OSProvider = ({ children }) => {
         tasks: []
       },
       habits: [],
-      habitCategories: ['Health', 'Learning', 'Work', 'Routine'],
+      habitCategories: [
+        { name: 'Health', icon: 'heart' },
+        { name: 'Learning', icon: 'book-open' },
+        { name: 'Work', icon: 'briefcase' },
+        { name: 'Routine', icon: 'clock' }
+      ],
       notes: [],
-      investments: {
-        trades: [],
-        marketPrices: {}
+      invoices: [],
+      invoiceDefaults: {
+        billerName: '',
+        billerEmail: '',
+        billerStreet: '',
+        billerCity: '',
+        billerState: '',
+        billerZip: '',
+        billerCountry: '',
+        defaultCurrency: '₹',
+        defaultTaxRate: 0,
+        defaultNotes: '',
+        onboarded: false
       },
+      clients: [],
       scratchpad: ''
     };
 
@@ -64,23 +79,59 @@ export const OSProvider = ({ children }) => {
           onboarded: parsed.settings?.onboarded !== undefined ? parsed.settings.onboarded : true, 
           ...parsed.settings 
         },
-        finance: { 
-          ...defaultData.finance, 
+        invoices: parsed.invoices || [],
+        clients: parsed.clients || [],
+        invoiceDefaults: {
+          ...defaultData.invoiceDefaults,
+          ...parsed.invoiceDefaults
+        },
+        finance: {
+          ...defaultData.finance,
           ...parsed.finance,
-          subscriptions: parsed.finance?.subscriptions || defaultData.finance.subscriptions,
-          categories: parsed.finance?.categories || defaultData.finance.categories,
+          transactions: parsed.finance?.transactions || [],
+          subscriptions: parsed.finance?.subscriptions || [],
           accounts: parsed.finance?.accounts || defaultData.finance.accounts,
-          transactions: (parsed.finance?.transactions || defaultData.finance.transactions).map(t => ({
-            ...t,
-            accountId: t.accountId || 'acc-bank'
-          }))
+          categories: (parsed.finance?.categories || defaultData.finance.categories).map(cat => {
+            if (!cat.icon) {
+              let icon = 'wallet';
+              if (cat.type === 'income') icon = 'credit-card';
+              if (cat.name === 'Office') icon = 'briefcase';
+              if (cat.name === 'Salary') icon = 'dollar-sign';
+              if (cat.name === 'Software') icon = 'code';
+              if (cat.name === 'Infrastructure') icon = 'server';
+              if (cat.name === 'Meals') icon = 'coffee';
+              if (cat.name === 'Utilities') icon = 'zap';
+              if (cat.name === 'Consulting') icon = 'users';
+              if (cat.name === 'Invoicing') icon = 'file-text';
+              if (cat.name === 'Miscellaneous') icon = 'help-circle';
+              return { ...cat, icon };
+            }
+            // Fix legacy icons that need renaming
+            if (cat.icon === 'smile' && cat.name === 'Miscellaneous') {
+              return { ...cat, icon: 'help-circle' };
+            }
+            if (cat.icon === 'briefcase' && cat.name === 'Salary') {
+              return { ...cat, icon: 'dollar-sign' };
+            }
+            return cat;
+          })
         },
         projects: {
           ...defaultData.projects,
           ...parsed.projects,
           projectsList: parsed.projects?.projectsList || defaultData.projects.projectsList
         },
-        habitCategories: parsed.habitCategories || defaultData.habitCategories
+        habitCategories: (parsed.habitCategories || defaultData.habitCategories).map(cat => {
+          if (typeof cat === 'string') {
+            let icon = 'smile';
+            if (cat === 'Health') icon = 'heart';
+            if (cat === 'Learning') icon = 'book-open';
+            if (cat === 'Work') icon = 'briefcase';
+            if (cat === 'Routine') icon = 'clock';
+            return { name: cat, icon };
+          }
+          return cat;
+        })
       };
     }
     return defaultData;
@@ -250,6 +301,59 @@ export const OSProvider = ({ children }) => {
     triggerToast('Transaction updated', 'success');
   };
 
+  // Client CRM Actions
+  const [invoiceDraftPreset, setInvoiceDraftPreset] = useState(null);
+
+  const addClient = (client) => {
+    const newClient = {
+      ...client,
+      id: 'c-' + Math.random().toString(36).substring(2, 9),
+      createdAt: new Date().toISOString()
+    };
+    setDb((prev) => ({
+      ...prev,
+      clients: [newClient, ...(prev.clients || [])]
+    }));
+    triggerToast(`Client added: ${client.name}`, 'success');
+    return newClient.id;
+  };
+
+  const updateClient = (id, updatedFields) => {
+    setDb((prev) => {
+      const updated = (prev.clients || []).map((c) => {
+        if (c.id === id) {
+          return { ...c, ...updatedFields };
+        }
+        return c;
+      });
+      return { ...prev, clients: updated };
+    });
+    triggerToast('Client profile updated', 'success');
+  };
+
+  const deleteClient = (id) => {
+    setDb((prev) => ({
+      ...prev,
+      clients: (prev.clients || []).filter((c) => c.id !== id)
+    }));
+    triggerToast('Client removed', 'info');
+  };
+
+  const triggerInvoiceForClient = (client) => {
+    setInvoiceDraftPreset({
+      clientName: client.company ? `${client.name} (${client.company})` : client.name,
+      clientEmail: client.email || '',
+      clientStreet: client.address?.street || '',
+      clientCity: client.address?.city || '',
+      clientState: client.address?.state || '',
+      clientZip: client.address?.zip || '',
+      clientCountry: client.address?.country || '',
+      clientPhone: client.phone || '',
+      isReceipt: client.isReceipt || false
+    });
+    setActiveApp('invoices');
+  };
+
   const addSubscription = (subscription) => {
     const newSub = {
       ...subscription,
@@ -264,6 +368,22 @@ export const OSProvider = ({ children }) => {
       }
     }));
     triggerToast(`Added subscription: ${subscription.name}`, 'success');
+  };
+
+  const editSubscription = (id, updatedFields) => {
+    setDb((prev) => {
+      const updated = (prev.finance.subscriptions || []).map((sub) => {
+        if (sub.id === id) {
+          return { ...sub, ...updatedFields, amount: parseFloat(updatedFields.amount) || 0 };
+        }
+        return sub;
+      });
+      return {
+        ...prev,
+        finance: { ...prev.finance, subscriptions: updated }
+      };
+    });
+    triggerToast('Subscription updated', 'success');
   };
 
   const deleteSubscription = (id) => {
@@ -375,14 +495,106 @@ export const OSProvider = ({ children }) => {
   };
 
   // Habits updates
-  const addHabit = (name, category) => {
+  const calculateStreak = (history, frequency, specificDays, weeklyCount) => {
+    let currentStreak = 0;
+    let tempDate = new Date();
+    
+    if (frequency === 'daily') {
+      for (let i = 0; i < 365; i++) {
+        const checkStr = tempDate.toISOString().split('T')[0];
+        if (history[checkStr]) {
+          currentStreak++;
+          tempDate.setDate(tempDate.getDate() - 1);
+        } else {
+          if (i === 0) {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const checkYesterdayStr = yesterday.toISOString().split('T')[0];
+            if (history[checkYesterdayStr]) {
+              tempDate.setDate(tempDate.getDate() - 1);
+              continue;
+            }
+          }
+          break;
+        }
+      }
+    } else if (frequency === 'days') {
+      let consecutiveScheduled = 0;
+      let dateToCheck = new Date();
+      
+      for (let i = 0; i < 365; i++) {
+        const dayOfWeek = dateToCheck.getDay();
+        const isScheduled = (specificDays || []).includes(dayOfWeek);
+        
+        if (isScheduled) {
+          const checkStr = dateToCheck.toISOString().split('T')[0];
+          if (history[checkStr]) {
+            consecutiveScheduled++;
+          } else {
+            if (consecutiveScheduled === 0) {
+              // Let it pass to check previous
+            } else {
+              break;
+            }
+          }
+        }
+        dateToCheck.setDate(dateToCheck.getDate() - 1);
+      }
+      currentStreak = consecutiveScheduled;
+    } else if (frequency === 'weekly') {
+      let consecutiveWeeks = 0;
+      let currentWeekStart = new Date();
+      const day = currentWeekStart.getDay();
+      const diff = currentWeekStart.getDate() - day + (day === 0 ? -6 : 1);
+      currentWeekStart.setDate(diff);
+      
+      const targetCount = parseInt(weeklyCount) || 3;
+      for (let w = 0; w < 52; w++) {
+        let completionsInWeek = 0;
+        for (let d = 0; d < 7; d++) {
+          const checkDate = new Date(currentWeekStart);
+          checkDate.setDate(checkDate.getDate() + d);
+          const checkStr = checkDate.toISOString().split('T')[0];
+          if (history[checkStr]) {
+            completionsInWeek++;
+          }
+        }
+        
+        if (completionsInWeek >= targetCount) {
+          consecutiveWeeks++;
+        } else {
+          if (w === 0) {
+            const today = new Date();
+            const todayDay = today.getDay();
+            const daysRemaining = todayDay === 0 ? 0 : 7 - todayDay;
+            if (completionsInWeek + daysRemaining >= targetCount) {
+              currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+              continue;
+            }
+          }
+          break;
+        }
+        currentWeekStart.setDate(currentWeekStart.getDate() - 7);
+      }
+      currentStreak = consecutiveWeeks;
+    }
+    
+    return currentStreak;
+  };
+
+  const addHabit = (name, category, frequency = 'daily', weeklyCount = 3, specificDays = []) => {
     if (!name.trim()) return;
     const newHabit = {
       id: 'h-' + Math.random().toString(36).substring(2, 9),
       name,
       category,
+      frequency,
+      weeklyCount: parseInt(weeklyCount) || 3,
+      specificDays: specificDays || [],
       streak: 0,
-      history: {}
+      history: {},
+      archived: false,
+      createdAt: new Date().toISOString().split('T')[0]
     };
     setDb((prev) => ({
       ...prev,
@@ -399,6 +611,35 @@ export const OSProvider = ({ children }) => {
     triggerToast('Habit deleted', 'info');
   };
 
+  const editHabit = (id, fields) => {
+    setDb((prev) => {
+      const updated = prev.habits.map((h) => {
+        if (h.id === id) {
+          const newHabit = { ...h, ...fields };
+          newHabit.streak = calculateStreak(newHabit.history, newHabit.frequency, newHabit.specificDays, newHabit.weeklyCount);
+          return newHabit;
+        }
+        return h;
+      });
+      return { ...prev, habits: updated };
+    });
+    triggerToast('Habit updated', 'success');
+  };
+
+  const toggleArchiveHabit = (id) => {
+    setDb((prev) => {
+      const updated = prev.habits.map((h) => {
+        if (h.id === id) {
+          const nextArchived = !h.archived;
+          setTimeout(() => triggerToast(nextArchived ? 'Habit archived' : 'Habit restored', 'success'), 100);
+          return { ...h, archived: nextArchived };
+        }
+        return h;
+      });
+      return { ...prev, habits: updated };
+    });
+  };
+
   const toggleHabitDate = (habitId, dateStr) => {
     setDb((prev) => {
       const updated = prev.habits.map((habit) => {
@@ -410,33 +651,7 @@ export const OSProvider = ({ children }) => {
             newHistory[dateStr] = true;
           }
 
-          // Calculate streak
-          // Simple streak calculation: count consecutive completed days backwards from today or last completed day
-          let currentStreak = 0;
-          let tempDate = new Date();
-          
-          // Let's count backwards to calculate current streak
-          for (let i = 0; i < 365; i++) {
-            const checkStr = tempDate.toISOString().split('T')[0];
-            if (newHistory[checkStr]) {
-              currentStreak++;
-              tempDate.setDate(tempDate.getDate() - 1);
-            } else {
-              // If it's today and not checked, we check yesterday to keep streak active
-              if (i === 0) {
-                const yesterday = new Date();
-                yesterday.setDate(yesterday.getDate() - 1);
-                const checkYesterdayStr = yesterday.toISOString().split('T')[0];
-                if (newHistory[checkYesterdayStr]) {
-                  // Streak is active from yesterday
-                  tempDate.setDate(tempDate.getDate() - 1);
-                  continue;
-                }
-              }
-              break;
-            }
-          }
-
+          const currentStreak = calculateStreak(newHistory, habit.frequency, habit.specificDays, habit.weeklyCount);
           return { ...habit, history: newHistory, streak: currentStreak };
         }
         return habit;
@@ -488,55 +703,46 @@ export const OSProvider = ({ children }) => {
     triggerToast('Note deleted', 'info');
   };
 
-  // Investments updates
-  const addTrade = (trade) => {
-    const newTrade = {
-      ...trade,
-      id: 't-' + Math.random().toString(36).substring(2, 9),
-      price: parseFloat(trade.price) || 0,
-      shares: parseFloat(trade.shares) || 0
+  // Invoices updates
+  const addInvoice = (invoice) => {
+    const newInvoice = {
+      ...invoice,
+      id: 'inv-' + Math.random().toString(36).substring(2, 9),
+      createdAt: new Date().toISOString()
     };
-    setDb((prev) => {
-      // Add unique tickers to market prices if not present
-      const updatedPrices = { ...prev.investments.marketPrices };
-      if (!(trade.ticker in updatedPrices)) {
-        updatedPrices[trade.ticker] = trade.price; // default to purchase price
-      }
-      return {
-        ...prev,
-        investments: {
-          trades: [newTrade, ...prev.investments.trades],
-          marketPrices: updatedPrices
-        }
-      };
-    });
-    triggerToast(`Logged trade: ${trade.type.toUpperCase()} ${trade.ticker}`, 'success');
-  };
-
-  const updateMarketPrice = (ticker, price) => {
-    const val = parseFloat(price) || 0;
     setDb((prev) => ({
       ...prev,
-      investments: {
-        ...prev.investments,
-        marketPrices: {
-          ...prev.investments.marketPrices,
-          [ticker]: val
-        }
-      }
+      invoices: [newInvoice, ...(prev.invoices || [])]
     }));
-    triggerToast(`Updated price for ${ticker}`, 'info');
+    triggerToast(`Created invoice: ${invoice.invoiceNumber || 'Draft'}`, 'success');
+    return newInvoice.id;
   };
 
-  const deleteTrade = (id) => {
+  const updateInvoice = (id, updatedFields) => {
     setDb((prev) => ({
       ...prev,
-      investments: {
-        ...prev.investments,
-        trades: prev.investments.trades.filter((t) => t.id !== id)
+      invoices: (prev.invoices || []).map((inv) => 
+        inv.id === id ? { ...inv, ...updatedFields } : inv
+      )
+    }));
+  };
+
+  const deleteInvoice = (id) => {
+    setDb((prev) => ({
+      ...prev,
+      invoices: (prev.invoices || []).filter((inv) => inv.id !== id)
+    }));
+    triggerToast('Invoice deleted', 'info');
+  };
+
+  const updateInvoiceDefaults = (updatedFields) => {
+    setDb((prev) => ({
+      ...prev,
+      invoiceDefaults: {
+        ...(prev.invoiceDefaults || {}),
+        ...updatedFields
       }
     }));
-    triggerToast('Trade transaction deleted', 'info');
   };
 
   // Backup system
@@ -559,7 +765,7 @@ export const OSProvider = ({ children }) => {
     try {
       const data = JSON.parse(jsonString);
       // Basic check
-      if (data.finance && data.projects && data.habits && data.notes && data.investments) {
+      if (data.finance && data.projects && data.habits && data.notes) {
         const sanitized = sanitizeDb(data);
         setDb(sanitized);
         triggerToast('System backup restored successfully', 'success');
@@ -586,7 +792,17 @@ export const OSProvider = ({ children }) => {
     triggerToast('Settings updated', 'success');
   };
 
-  const completeOnboarding = (username, currency, budget, monthlyTarget, yearlyTarget) => {
+  const completeOnboarding = (username, currency, budget, monthlyTarget, yearlyTarget, accountsList) => {
+    const formattedAccounts = (accountsList && accountsList.length > 0)
+      ? accountsList.map((acc, idx) => ({
+          id: acc.id || `acc-${Math.random().toString(36).substring(2, 9)}`,
+          name: acc.name || `Account ${idx + 1}`,
+          initialBalance: parseFloat(acc.initialBalance) || 0
+        }))
+      : [
+          { id: 'acc-cash', name: 'Cash', initialBalance: 0 }
+        ];
+
     setDb((prev) => ({
       ...prev,
       settings: {
@@ -598,7 +814,8 @@ export const OSProvider = ({ children }) => {
         ...prev.finance,
         budget: parseFloat(budget) || 0,
         monthlyTarget: parseFloat(monthlyTarget) || 0,
-        yearlyTarget: parseFloat(yearlyTarget) || 0
+        yearlyTarget: parseFloat(yearlyTarget) || 0,
+        accounts: formattedAccounts
       }
     }));
     triggerToast('Welcome to gryndset!', 'success');
@@ -738,26 +955,32 @@ export const OSProvider = ({ children }) => {
   };
 
   // Habits Categories CRUD
-  const addHabitCategory = (name) => {
+  const addHabitCategory = (name, icon = 'smile') => {
     if (!name.trim()) return;
     setDb((prev) => {
       const list = prev.habitCategories || [];
-      if (list.includes(name.trim())) {
+      if (list.some(c => (typeof c === 'string' ? c.toLowerCase() : c.name.toLowerCase()) === name.trim().toLowerCase())) {
         setTimeout(() => triggerToast('Category already exists', 'warning'), 100);
         return prev;
       }
       return {
         ...prev,
-        habitCategories: [...list, name.trim()]
+        habitCategories: [...list, { name: name.trim(), icon }]
       };
     });
     triggerToast(`Added habit category: ${name}`, 'success');
   };
 
-  const renameHabitCategory = (oldName, newName) => {
-    if (!newName.trim() || oldName === newName) return;
+  const renameHabitCategory = (oldName, newName, icon = 'smile') => {
+    if (!newName.trim()) return;
     setDb((prev) => {
-      const list = (prev.habitCategories || []).map(c => c === oldName ? newName.trim() : c);
+      const list = (prev.habitCategories || []).map(c => {
+        const cName = typeof c === 'string' ? c : c.name;
+        if (cName === oldName) {
+          return { name: newName.trim(), icon };
+        }
+        return c;
+      });
       const habits = prev.habits.map(h => h.category === oldName ? { ...h, category: newName.trim() } : h);
       return {
         ...prev,
@@ -765,13 +988,16 @@ export const OSProvider = ({ children }) => {
         habits
       };
     });
-    triggerToast(`Renamed habit category to ${newName}`, 'success');
+    triggerToast(`Updated habit category: ${newName}`, 'success');
   };
 
   const deleteHabitCategory = (name) => {
     setDb((prev) => {
-      const list = (prev.habitCategories || []).filter(c => c !== name);
-      const fallback = list[0] || 'Routine';
+      const list = (prev.habitCategories || []).filter(c => {
+        const cName = typeof c === 'string' ? c : c.name;
+        return cName !== name;
+      });
+      const fallback = (list[0] && (typeof list[0] === 'string' ? list[0] : list[0].name)) || 'Routine';
       const habits = prev.habits.map(h => h.category === name ? { ...h, category: fallback } : h);
       return {
         ...prev,
@@ -827,6 +1053,7 @@ export const OSProvider = ({ children }) => {
         editTransaction,
         updateFinanceTargets,
         addSubscription,
+        editSubscription,
         deleteSubscription,
         addFinanceCategory,
         deleteFinanceCategory,
@@ -846,6 +1073,8 @@ export const OSProvider = ({ children }) => {
         // Habits
         addHabit,
         deleteHabit,
+        editHabit,
+        toggleArchiveHabit,
         toggleHabitDate,
         addHabitCategory,
         renameHabitCategory,
@@ -856,10 +1085,18 @@ export const OSProvider = ({ children }) => {
         deleteNote,
         renameNotesFolder,
         deleteNotesFolder,
-        // Investments
-        addTrade,
-        updateMarketPrice,
-        deleteTrade,
+        // Invoices
+        addInvoice,
+        updateInvoice,
+        deleteInvoice,
+        updateInvoiceDefaults,
+        // CRM
+        addClient,
+        updateClient,
+        deleteClient,
+        invoiceDraftPreset,
+        setInvoiceDraftPreset,
+        triggerInvoiceForClient,
         // Backups
         exportBackup,
         importBackup

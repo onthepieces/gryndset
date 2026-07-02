@@ -1,6 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { useOS } from '../context/OSContext';
-import { ArrowRight, ArrowLeft, Check, User, Wallet, TrendingUp, Sparkles } from 'lucide-react';
+import { 
+  ArrowRight, 
+  ArrowLeft, 
+  Check, 
+  User, 
+  Wallet, 
+  TrendingUp, 
+  Sparkles, 
+  Building, 
+  Trash2, 
+  Plus 
+} from 'lucide-react';
 
 export default function OnboardingScreen() {
   const { completeOnboarding } = useOS();
@@ -10,6 +21,11 @@ export default function OnboardingScreen() {
   const [budget, setBudget] = useState('50000');
   const [monthlyTarget, setMonthlyTarget] = useState('15000');
   const [yearlyTarget, setYearlyTarget] = useState('200000');
+
+  // Accounts state
+  const [onboardingAccounts, setOnboardingAccounts] = useState([
+    { id: 'acc-cash', name: 'Cash', initialBalance: '0' }
+  ]);
 
   // Dynamically update default targets when currency changes
   useEffect(() => {
@@ -25,7 +41,7 @@ export default function OnboardingScreen() {
   }, [currency]);
 
   const handleNext = () => {
-    if (step < 4) setStep(step + 1);
+    if (step < 5) setStep(step + 1);
   };
 
   const handleBack = () => {
@@ -33,7 +49,28 @@ export default function OnboardingScreen() {
   };
 
   const handleFinish = () => {
-    completeOnboarding(name, currency, budget, monthlyTarget, yearlyTarget);
+    completeOnboarding(name, currency, budget, monthlyTarget, yearlyTarget, onboardingAccounts);
+  };
+
+  const handleAccountBalanceChange = (id, val) => {
+    setOnboardingAccounts(prev => prev.map(acc => acc.id === id ? { ...acc, initialBalance: val } : acc));
+  };
+
+  const handleAccountNameChange = (id, val) => {
+    setOnboardingAccounts(prev => prev.map(acc => acc.id === id ? { ...acc, name: val } : acc));
+  };
+
+  const handleAddAccount = () => {
+    const newId = `acc-${Math.random().toString(36).substring(2, 9)}`;
+    setOnboardingAccounts(prev => [
+      ...prev,
+      { id: newId, name: 'Bank Account', initialBalance: '0' }
+    ]);
+  };
+
+  const handleRemoveAccount = (id) => {
+    if (id === 'acc-cash') return; // Cannot delete Cash
+    setOnboardingAccounts(prev => prev.filter(acc => acc.id !== id));
   };
 
   const isNameEmpty = name.trim() === '';
@@ -54,13 +91,13 @@ export default function OnboardingScreen() {
         <div className="onboarding-progress-bar">
           <div 
             className="onboarding-progress-fill" 
-            style={{ width: `${(step / 4) * 100}%` }}
+            style={{ width: `${(step / 5) * 100}%` }}
           ></div>
         </div>
 
         {/* Step Indicator */}
         <div className="onboarding-steps-badge">
-          Step {step} of 4
+          Step {step} of 5
         </div>
 
         <div className="onboarding-content-wrap">
@@ -184,6 +221,113 @@ export default function OnboardingScreen() {
 
           {step === 4 && (
             <div className="onboarding-step-view fade-in">
+              <div className="onboarding-header">
+                <h1>Set up accounts</h1>
+                <p>Initialize starting balances for your cash and bank accounts.</p>
+              </div>
+
+              <div className="targets-input-fields" style={{ maxHeight: '250px', overflowY: 'auto', paddingRight: '4px', gap: '8px' }}>
+                {onboardingAccounts.map((acc) => {
+                  const isCash = acc.id === 'acc-cash';
+                  return (
+                    <div 
+                      key={acc.id} 
+                      className="target-input-card glass-card" 
+                      style={{ 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'space-between', 
+                        padding: '12px 16px',
+                        gap: '12px'
+                      }}
+                    >
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexGrow: 1 }}>
+                        <div className="target-card-icon" style={{ flexShrink: 0, width: '36px', height: '36px', borderRadius: '8px' }}>
+                          {isCash ? <Wallet size={16} /> : <Building size={16} />}
+                        </div>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', width: '100%' }}>
+                          {isCash ? (
+                            <span style={{ fontSize: '13px', fontWeight: 600, color: 'var(--text-pure)' }}>Cash Account</span>
+                          ) : (
+                            <input
+                              type="text"
+                              value={acc.name}
+                              onChange={(e) => handleAccountNameChange(acc.id, e.target.value)}
+                              placeholder="Account Name"
+                              className="glass-input"
+                              style={{
+                                background: 'rgba(255, 255, 255, 0.03)',
+                                border: '1px solid var(--border-subtle)',
+                                color: 'var(--text-pure)',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                padding: '4px 8px',
+                                borderRadius: '6px',
+                                width: '140px',
+                                height: '28px',
+                                outline: 'none'
+                              }}
+                            />
+                          )}
+                          <div className="target-numeric-wrapper" style={{ marginTop: '2px' }}>
+                            <span style={{ fontSize: '11px' }}>{currency}</span>
+                            <input
+                              type="number"
+                              value={acc.initialBalance}
+                              onChange={(e) => handleAccountBalanceChange(acc.id, e.target.value)}
+                              placeholder="0"
+                              style={{ width: '80px', height: '20px', fontSize: '12px' }}
+                            />
+                          </div>
+                        </div>
+                      </div>
+
+                      {!isCash && (
+                        <button
+                          type="button"
+                          onClick={() => handleRemoveAccount(acc.id)}
+                          className="glass-btn"
+                          style={{ 
+                            color: 'var(--color-danger)', 
+                            borderColor: 'rgba(244, 63, 94, 0.2)',
+                            padding: '4px 8px',
+                            height: '28px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center'
+                          }}
+                        >
+                          <Trash2 size={13} />
+                        </button>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              <button
+                type="button"
+                onClick={handleAddAccount}
+                className="glass-btn"
+                style={{
+                  marginTop: '12px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '6px',
+                  fontSize: '11px',
+                  padding: '6px 12px',
+                  width: 'fit-content',
+                  alignSelf: 'center',
+                  height: '32px'
+                }}
+              >
+                <Plus size={12} /> Add Bank Account
+              </button>
+            </div>
+          )}
+
+          {step === 5 && (
+            <div className="onboarding-step-view fade-in">
               <div className="onboarding-header text-center">
                 <div className="success-badge-glow">
                   <Check size={32} />
@@ -214,6 +358,16 @@ export default function OnboardingScreen() {
                   <span>Yearly Savings Milestone:</span>
                   <strong>{currency}{Number(yearlyTarget).toLocaleString()}</strong>
                 </div>
+                <div className="summary-row" style={{ flexDirection: 'column', alignItems: 'flex-start', gap: '4px', marginTop: '6px', borderTop: '1px solid var(--border-subtle)', paddingTop: '6px' }}>
+                  <span style={{ fontSize: '11px', color: 'var(--text-secondary)' }}>Initialized Accounts:</span>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', width: '100%', marginTop: '2px' }}>
+                    {onboardingAccounts.map(acc => (
+                      <span key={acc.id} style={{ fontSize: '10px', background: 'rgba(255,255,255,0.05)', border: '1px solid var(--border-subtle)', borderRadius: '6px', padding: '2px 8px' }}>
+                        {acc.name}: <strong>{currency}{Number(acc.initialBalance).toLocaleString()}</strong>
+                      </span>
+                    ))}
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -230,7 +384,7 @@ export default function OnboardingScreen() {
             </button>
           )}
 
-          {step < 4 ? (
+          {step < 5 ? (
             <button 
               className="onboarding-next-btn glass-btn accent" 
               onClick={handleNext}

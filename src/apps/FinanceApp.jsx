@@ -12,8 +12,457 @@ import {
   Edit2,
   Calendar,
   X,
-  Wallet
+  Wallet,
+  Coffee,
+  Briefcase,
+  Code,
+  Server,
+  Zap,
+  Smile,
+  CreditCard,
+  Users,
+  FileText,
+  ShoppingCart,
+  Home,
+  Car,
+  Heart,
+  Shield,
+  Gift,
+  HelpCircle,
+  DollarSign,
+  Coins,
+  ChevronDown
 } from 'lucide-react';
+
+const FINANCE_ICON_MAP = {
+  'wallet': <Wallet size={14} />,
+  'briefcase': <Briefcase size={14} />,
+  'code': <Code size={14} />,
+  'server': <Server size={14} />,
+  'coffee': <Coffee size={14} />,
+  'zap': <Zap size={14} />,
+  'smile': <Smile size={14} />,
+  'credit-card': <CreditCard size={14} />,
+  'users': <Users size={14} />,
+  'file-text': <FileText size={14} />,
+  'shopping-cart': <ShoppingCart size={14} />,
+  'home': <Home size={14} />,
+  'car': <Car size={14} />,
+  'heart': <Heart size={14} />,
+  'shield': <Shield size={14} />,
+  'gift': <Gift size={14} />,
+  'help-circle': <HelpCircle size={14} />,
+  'dollar-sign': <DollarSign size={14} />,
+  'clock': <Clock size={14} />
+};
+
+const getBrandDomain = (name) => {
+  const cleanName = name.toLowerCase().trim();
+  
+  // Map common subscription names and synonyms to their official domains
+  const brandKeywords = [
+    { keywords: ['netflix'], domain: 'netflix.com' },
+    { keywords: ['spotify'], domain: 'spotify.com' },
+    { keywords: ['youtube', 'yt premium', 'yt music'], domain: 'youtube.com' },
+    { keywords: ['github', 'gh copilot'], domain: 'github.com' },
+    { keywords: ['chatgpt', 'openai', 'gpt-4', 'chat gpt'], domain: 'openai.com' },
+    { keywords: ['adobe', 'creative cloud', 'photoshop', 'illustrator', 'premiere', 'adobe cc', 'cc'], domain: 'adobe.com' },
+    { keywords: ['figma'], domain: 'figma.com' },
+    { keywords: ['zoom'], domain: 'zoom.us' },
+    { keywords: ['notion'], domain: 'notion.so' },
+    { keywords: ['slack'], domain: 'slack.com' },
+    { keywords: ['google', 'gsuite', 'g-suite', 'gcp', 'youtube premium', 'youtube music', 'gmail', 'drive'], domain: 'google.com' },
+    { keywords: ['apple', 'icloud', 'apple music', 'apple tv', 'arcade', 'one'], domain: 'apple.com' },
+    { keywords: ['microsoft', 'office 365', 'm365', 'outlook', 'azure', 'ms office', 'onedrive'], domain: 'microsoft.com' },
+    { keywords: ['amazon', 'prime', 'aws', 'audible', 'kindle'], domain: 'amazon.com' },
+    { keywords: ['disney'], domain: 'disneyplus.com' },
+    { keywords: ['hulu'], domain: 'hulu.com' },
+    { keywords: ['hbo', 'max'], domain: 'hbomax.com' },
+    { keywords: ['canva'], domain: 'canva.com' },
+    { keywords: ['vercel'], domain: 'vercel.com' },
+    { keywords: ['netlify'], domain: 'netlify.com' },
+    { keywords: ['heroku'], domain: 'heroku.com' },
+    { keywords: ['digitalocean', 'digital ocean'], domain: 'digitalocean.com' },
+    { keywords: ['dropbox'], domain: 'dropbox.com' },
+    { keywords: ['linkedin', 'sales navigator'], domain: 'linkedin.com' },
+    { keywords: ['cursor'], domain: 'cursor.sh' },
+    { keywords: ['midjourney'], domain: 'midjourney.com' },
+    { keywords: ['linear'], domain: 'linear.app' },
+    { keywords: ['loom'], domain: 'loom.com' },
+    { keywords: ['stripe'], domain: 'stripe.com' },
+    { keywords: ['shopify'], domain: 'shopify.com' },
+    { keywords: ['cloudflare'], domain: 'cloudflare.com' },
+    { keywords: ['playstation', 'ps plus', 'psn', 'ps5'], domain: 'playstation.com' },
+    { keywords: ['xbox', 'game pass', 'gamepass'], domain: 'xbox.com' },
+    { keywords: ['nintendo', 'switch online'], domain: 'nintendo.com' },
+    { keywords: ['steam'], domain: 'steampowered.com' }
+  ];
+
+  const matchedBrand = brandKeywords.find(brand => {
+    return brand.keywords.some(keyword => {
+      if (keyword.length <= 3) {
+        const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+        return regex.test(cleanName);
+      }
+      return cleanName.includes(keyword);
+    });
+  });
+  
+  return matchedBrand ? matchedBrand.domain : null;
+};
+
+const getAccountDomain = (name) => {
+  const cleanName = name.toLowerCase().trim();
+  
+  if (cleanName.includes('cash')) {
+    return 'local:cash';
+  }
+
+  const brandKeywords = [
+    // Indian Banks (Matched first so bank logos take precedence over card networks)
+    { keywords: ['hdfc'], domain: 'hdfcbank.com' },
+    { keywords: ['icici'], domain: 'icicibank.com' },
+    { keywords: ['sbi', 'state bank of india', 'state bank'], domain: 'sbi.co.in' },
+    { keywords: ['kotak'], domain: 'kotak.com' },
+    { keywords: ['axis'], domain: 'axisbank.com' },
+    { keywords: ['bank of baroda', 'baroda', 'bob'], domain: 'bankofbaroda.in' },
+    { keywords: ['pnb', 'punjab national'], domain: 'pnbindia.in' },
+    { keywords: ['yes bank', 'yesbank'], domain: 'yesbank.in' },
+    { keywords: ['idfc'], domain: 'idfcfirstbank.com' },
+    { keywords: ['indusind'], domain: 'indusind.com' },
+    { keywords: ['canara'], domain: 'canarabank.com' },
+    { keywords: ['union bank'], domain: 'unionbankofindia.co.in' },
+    { keywords: ['federal bank'], domain: 'federalbank.co.in' },
+    { keywords: ['bandhan'], domain: 'bandhanbank.com' },
+
+    // Global Banks
+    { keywords: ['chase'], domain: 'chase.com' },
+    { keywords: ['wells fargo', 'wellsfargo'], domain: 'wellsfargo.com' },
+    { keywords: ['bank of america', 'boa', 'bankofamerica'], domain: 'bankofamerica.com' },
+    { keywords: ['citi', 'citibank'], domain: 'citi.com' },
+    { keywords: ['hsbc'], domain: 'hsbc.com' },
+    { keywords: ['barclays'], domain: 'barclays.co.uk' },
+    { keywords: ['revolut'], domain: 'revolut.com' },
+    { keywords: ['paypal', 'pay pal'], domain: 'paypal.com' },
+    { keywords: ['capital one', 'capitalone'], domain: 'capitalone.com' },
+    { keywords: ['fidelity'], domain: 'fidelity.com' },
+    { keywords: ['schwab'], domain: 'schwab.com' },
+    { keywords: ['monzo'], domain: 'monzo.com' },
+    { keywords: ['n26'], domain: 'n26.com' },
+
+    // Card Networks & Payment Providers (Matched last)
+    { keywords: ['visa'], domain: 'visa.com' },
+    { keywords: ['mastercard', 'master card'], domain: 'mastercard.com' },
+    { keywords: ['amex', 'american express'], domain: 'americanexpress.com' },
+    { keywords: ['discover'], domain: 'discover.com' },
+    { keywords: ['apple card', 'apple pay', 'applepay'], domain: 'apple.com' },
+    { keywords: ['google pay', 'gpay'], domain: 'google.com' }
+  ];
+
+  const matchedBrand = brandKeywords.find(brand => {
+    return brand.keywords.some(keyword => {
+      // Bypass word boundary for 'sbi' because it is highly specific and rare as a substring
+      if (keyword.length <= 3 && keyword !== 'sbi') {
+        const regex = new RegExp(`\\b${keyword}\\b`, 'i');
+        return regex.test(cleanName);
+      }
+      return cleanName.includes(keyword);
+    });
+  });
+  
+  return matchedBrand ? matchedBrand.domain : null;
+};
+
+const SmartLogo = ({ domain, alt, onError }) => {
+  const [retryStage, setRetryStage] = useState(0); // 0: Clearbit, 1: Google, 2: DuckDuckGo
+
+  const srcMap = [
+    `https://logo.clearbit.com/${domain}`,
+    `https://www.google.com/s2/favicons?sz=64&domain=${domain}`,
+    `https://icons.duckduckgo.com/ip3/${domain}.ico`
+  ];
+
+  const handleError = () => {
+    if (retryStage < srcMap.length - 1) {
+      setRetryStage(prev => prev + 1);
+    } else {
+      onError();
+    }
+  };
+
+  return (
+    <img 
+      src={srcMap[retryStage]} 
+      alt={alt} 
+      style={{ width: '16px', height: '16px', borderRadius: '4px', objectFit: 'contain' }}
+      onError={handleError}
+    />
+  );
+};
+
+const SubscriptionItem = ({ sub, currency, formatAmount, deleteSubscription, handleStartEditSub }) => {
+  const [imgError, setImgError] = useState(false);
+  const domain = imgError ? null : getBrandDomain(sub.name);
+
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-subtle)', fontSize: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        {domain ? (
+          <div style={{ width: '24px', height: '24px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.06)', borderRadius: '6px', border: '1px solid rgba(255,255,255,0.08)', overflow: 'hidden', flexShrink: 0 }}>
+            <SmartLogo domain={domain} alt={sub.name} onError={() => setImgError(true)} />
+          </div>
+        ) : (
+          <div style={{ width: '24px', height: '24px', borderRadius: '6px', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '10px', fontWeight: 600, color: 'var(--text-secondary)', flexShrink: 0 }}>
+            {sub.name.charAt(0).toUpperCase()}
+          </div>
+        )}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <strong style={{ color: 'var(--text-pure)' }}>{sub.name}</strong>
+          <span style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>
+            Renews on the {sub.renewalDay}th ({sub.category})
+          </span>
+        </div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+        <span className="font-mono" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
+          {currency}{formatAmount(sub.amount)}
+        </span>
+        <div style={{ display: 'flex', gap: '4px' }}>
+          <button 
+            onClick={() => handleStartEditSub(sub)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+            className="glass-btn-icon"
+            title="Edit Subscription"
+          >
+            <Edit2 size={12} />
+          </button>
+          <button 
+            onClick={() => deleteSubscription(sub.id)}
+            style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
+            className="glass-btn-icon"
+            title="Cancel Subscription tracking"
+          >
+            <Trash2 size={12} />
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const AccountSummaryItem = ({ acc, bal, currency, formatAmount }) => {
+  return (
+    <div 
+      style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        padding: '10px 12px', 
+        borderRadius: '8px', 
+        background: 'rgba(255,255,255,0.01)', 
+        border: '1px solid var(--border-subtle)',
+        fontSize: '13px'
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <AccountLogo name={acc.name} />
+        <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{acc.name}</span>
+      </div>
+      <span className="font-mono" style={{ 
+        fontWeight: 600, 
+        color: bal >= 0 ? 'var(--color-success)' : 'var(--color-danger)'
+      }}>
+        {bal < 0 ? '-' : ''}{currency}{formatAmount(Math.abs(bal))}
+      </span>
+    </div>
+  );
+};
+
+const ManageAccountItem = ({ acc, bal, currency, formatAmount, onEdit, onDelete }) => {
+  return (
+    <div 
+      style={{ 
+        display: 'flex', 
+        justifyContent: 'space-between', 
+        alignItems: 'center', 
+        padding: '10px 12px', 
+        borderRadius: '8px', 
+        background: 'rgba(255,255,255,0.02)', 
+        border: '1px solid var(--border-subtle)', 
+        fontSize: '12px' 
+      }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <AccountLogo name={acc.name} />
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+          <strong style={{ color: 'var(--text-pure)', fontSize: '13px' }}>{acc.name}</strong>
+          <div style={{ display: 'flex', gap: '10px', fontSize: '10px', color: 'var(--text-secondary)' }}>
+            <span>Initial: <span className="font-mono">{currency}{formatAmount(acc.initialBalance)}</span></span>
+            <span>•</span>
+            <span>Current: <span className="font-mono" style={{ color: bal >= 0 ? 'var(--color-success)' : 'var(--color-danger)' }}>{bal < 0 ? '-' : ''}{currency}{formatAmount(Math.abs(bal))}</span></span>
+          </div>
+        </div>
+      </div>
+      
+      <div style={{ display: 'flex', gap: '6px' }}>
+        <button 
+          type="button"
+          onClick={onEdit}
+          className="glass-btn-icon"
+          style={{ color: 'var(--text-muted)' }}
+          title="Edit Account"
+        >
+          <Edit2 size={12} />
+        </button>
+        <button 
+          type="button"
+          onClick={onDelete}
+          className="glass-btn-icon"
+          style={{ color: 'var(--text-muted)' }}
+          title="Delete Account"
+        >
+          <Trash2 size={12} />
+        </button>
+      </div>
+    </div>
+  );
+};
+
+const AccountLogo = ({ name }) => {
+  const [imgError, setImgError] = useState(false);
+  const domain = imgError ? null : getAccountDomain(name);
+
+  if (domain === 'local:cash') {
+    return (
+      <div style={{ width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(52, 211, 153, 0.1)', borderRadius: '4px', border: '1px solid rgba(52, 211, 153, 0.2)', color: '#34d399', flexShrink: 0 }}>
+        <Coins size={10} />
+      </div>
+    );
+  }
+
+  if (domain) {
+    return (
+      <div style={{ width: '16px', height: '16px', display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(255,255,255,0.04)', borderRadius: '4px', border: '1px solid rgba(255,255,255,0.06)', overflow: 'hidden', flexShrink: 0 }}>
+        <SmartLogo domain={domain} alt={name} onError={() => setImgError(true)} />
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ width: '16px', height: '16px', borderRadius: '4px', background: 'rgba(255,255,255,0.03)', border: '1px solid var(--border-subtle)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '8px', fontWeight: 600, color: 'var(--text-secondary)', flexShrink: 0 }}>
+      {name.charAt(0).toUpperCase()}
+    </div>
+  );
+};
+
+const GlassSelect = ({ value, onChange, options, style }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find(o => o.value === value) || options[0];
+
+  return (
+    <div ref={containerRef} style={{ position: 'relative', width: '100%', ...style }}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="glass-input"
+        style={{
+          width: '100%',
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          cursor: 'pointer',
+          textAlign: 'left',
+          padding: '8px 12px',
+          fontSize: '12px',
+          height: '38px',
+          background: 'rgba(255, 255, 255, 0.05)',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: '8px',
+          outline: 'none',
+          color: 'var(--text-primary)',
+          boxSizing: 'border-box'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden', whiteSpace: 'nowrap', flexGrow: 1 }}>
+          {selectedOption?.icon}
+          <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+            {selectedOption ? selectedOption.label : 'Select...'}
+          </span>
+        </div>
+        <ChevronDown size={14} style={{ color: 'var(--text-muted)', transform: isOpen ? 'rotate(180deg)' : 'none', transition: 'transform 0.2s ease' }} />
+      </button>
+
+      {isOpen && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 4px)',
+            left: 0,
+            width: '100%',
+            background: 'rgba(18, 18, 20, 0.95)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: '8px',
+            boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.4), 0 8px 10px -6px rgba(0, 0, 0, 0.4)',
+            zIndex: 1000,
+            maxHeight: '200px',
+            overflowY: 'auto',
+            padding: '4px'
+          }}
+        >
+          {options.map(opt => {
+            const isSelected = opt.value === value;
+            return (
+              <div
+                key={opt.value}
+                onClick={() => {
+                  onChange(opt.value);
+                  setIsOpen(false);
+                }}
+                style={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  padding: '8px 10px',
+                  borderRadius: '6px',
+                  cursor: 'pointer',
+                  fontSize: '12px',
+                  color: isSelected ? 'var(--text-pure)' : 'var(--text-primary)',
+                  background: isSelected ? 'rgba(255, 255, 255, 0.08)' : 'transparent',
+                  transition: 'background 0.15s ease'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isSelected) e.currentTarget.style.background = 'rgba(255, 255, 255, 0.04)';
+                }}
+                onMouseLeave={(e) => {
+                  if (!isSelected) e.currentTarget.style.background = 'transparent';
+                }}
+              >
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  {opt.icon}
+                  <span style={{ fontWeight: isSelected ? 600 : 400 }}>{opt.label}</span>
+                </div>
+                {opt.extra}
+              </div>
+            );
+          })}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function FinanceApp() {
   const { 
@@ -23,6 +472,7 @@ export default function FinanceApp() {
     toggleTransactionStatus,
     editTransaction,
     addSubscription,
+    editSubscription,
     deleteSubscription,
     filterMonth,
     filterYear,
@@ -81,6 +531,15 @@ export default function FinanceApp() {
   };
   const accountBalances = calculateAccountBalances();
 
+  // Get category icon helper
+  const getFinanceCatIcon = (catName, type) => {
+    const cat = dbCategories.find(c => c.name === catName && c.type === type);
+    if (cat && cat.icon && FINANCE_ICON_MAP[cat.icon]) {
+      return FINANCE_ICON_MAP[cat.icon];
+    }
+    return type === 'income' ? <CreditCard size={14} /> : <Wallet size={14} />;
+  };
+
   // 1. Transaction Form State
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
@@ -89,6 +548,7 @@ export default function FinanceApp() {
   const [status, setStatus] = useState('paid');
   const [txDate, setTxDate] = useState('');
   const [accountId, setAccountId] = useState('');
+  const [newCatIcon, setNewCatIcon] = useState('wallet');
 
   React.useEffect(() => {
     if (accounts.length > 0 && !accountId) {
@@ -133,6 +593,16 @@ export default function FinanceApp() {
   const [subAmount, setSubAmount] = useState('');
   const [subCategory, setSubCategory] = useState('Software');
   const [subRenewalDay, setSubRenewalDay] = useState('1');
+
+  // Subscription Editing State
+  const [editingSub, setEditingSub] = useState(null);
+  const [editSubName, setEditSubName] = useState('');
+  const [editSubAmount, setEditSubAmount] = useState('');
+  const [editSubCategory, setEditSubCategory] = useState('Software');
+  const [editSubRenewalDay, setEditSubRenewalDay] = useState('1');
+
+  // Add Category Type State
+  const [newCatType, setNewCatType] = useState('expense');
 
   const transactions = db.finance.transactions || [];
   const subscriptions = db.finance.subscriptions || [];
@@ -283,6 +753,32 @@ export default function FinanceApp() {
     setIsAddingSub(false);
   };
 
+  const handleStartEditSub = (sub) => {
+    setEditingSub(sub);
+    setEditSubName(sub.name);
+    setEditSubAmount(sub.amount.toString());
+    setEditSubCategory(sub.category || 'Software');
+    setEditSubRenewalDay(sub.renewalDay.toString());
+  };
+
+  const handleSaveEditSub = (e) => {
+    e.preventDefault();
+    if (!editSubName.trim() || !editSubAmount || !editingSub) return;
+    
+    const parsedAmount = parseFloat(editSubAmount);
+    const parsedDay = parseInt(editSubRenewalDay);
+    if (isNaN(parsedAmount) || parsedAmount <= 0 || isNaN(parsedDay) || parsedDay < 1 || parsedDay > 31) return;
+
+    editSubscription(editingSub.id, {
+      name: editSubName.trim(),
+      amount: parsedAmount,
+      category: editSubCategory,
+      renewalDay: parsedDay
+    });
+
+    setEditingSub(null);
+  };
+
   const handleCreateAccount = (e) => {
     e.preventDefault();
     if (!accName.trim()) return;
@@ -367,104 +863,217 @@ export default function FinanceApp() {
           </div>
         </div>
 
-        {/* Smart Advisor Insights Panel */}
-        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)' }}>
-            <Lightbulb size={16} style={{ color: 'var(--color-warning)' }} />
-            <h3 style={{ fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Financial Insights</h3>
+        {/* Row: Financial Insights & Subscriptions side-by-side */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '24px' }}>
+          
+          {/* Smart Advisor Insights Panel */}
+          <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)' }}>
+              <Lightbulb size={16} style={{ color: 'var(--color-warning)' }} />
+              <h3 style={{ fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Financial Insights</h3>
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              
+              {/* Condition 1: Deficit Warning */}
+              {netBalance < 0 && (
+                <div style={{ 
+                  padding: '12px', 
+                  borderRadius: '8px', 
+                  background: 'var(--color-danger-bg)', 
+                  border: '1px solid var(--color-danger-border)',
+                  display: 'flex',
+                  gap: '8px',
+                  flexDirection: 'column'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-danger)', fontWeight: 600, fontSize: '12px' }}>
+                    <AlertTriangle size={14} />
+                    <span>Deficit Warning</span>
+                  </div>
+                  <p style={{ fontSize: '12px', color: 'var(--text-primary)', lineHeight: '1.4' }}>
+                    Your paid expenses exceed income by <strong className="font-mono">{currency}{formatAmount(Math.abs(netBalance))}</strong>. Pause discretionary purchases and review upcoming unpaid dues to restore balance.
+                  </p>
+                </div>
+              )}
+
+              {/* Condition 2: Surplus Advice */}
+              {netBalance > 0 && (
+                <div style={{ 
+                  padding: '12px', 
+                  borderRadius: '8px', 
+                  background: 'var(--color-success-bg)', 
+                  border: '1px solid var(--color-success-border)',
+                  display: 'flex',
+                  gap: '8px',
+                  flexDirection: 'column'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-success)', fontWeight: 600, fontSize: '12px' }}>
+                    <TrendingUp size={14} />
+                    <span>Surplus Opportunity</span>
+                  </div>
+                  <p style={{ fontSize: '12px', color: 'var(--text-primary)', lineHeight: '1.4' }}>
+                    Great work! You have a surplus of <strong className="font-mono">{currency}{formatAmount(netBalance)}</strong>. We recommend allocating <strong className="font-mono">{currency}{formatAmount(netBalance * 0.5)} (50%)</strong> to savings to build compounding assets.
+                  </p>
+                </div>
+              )}
+
+              {/* Top Category Spending Alert */}
+              {topCategoryAmount > 0 && (
+                <div style={{ 
+                  padding: '12px', 
+                  borderRadius: '8px', 
+                  background: 'rgba(255,255,255,0.02)', 
+                  border: '1px solid var(--border-subtle)',
+                  display: 'flex',
+                  gap: '6px',
+                  flexDirection: 'column'
+                }}>
+                  <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
+                    Spending Sector Alert
+                  </span>
+                  <p style={{ fontSize: '12px', color: 'var(--text-primary)', lineHeight: '1.4' }}>
+                    Your highest expense category is <strong>{topCategoryName}</strong> at <strong className="font-mono">{currency}{formatAmount(topCategoryAmount)}</strong> ({topCategoryPercent}% of total spends). Consider trimming subscription lines or consulting audits.
+                  </p>
+                </div>
+              )}
+
+              {/* Budget limit alert */}
+              {expenses > monthlyBudget && (
+                <div style={{ 
+                  padding: '12px', 
+                  borderRadius: '8px', 
+                  background: 'var(--color-danger-bg)', 
+                  border: '1px solid var(--color-danger-border)',
+                  display: 'flex',
+                  gap: '6px',
+                  flexDirection: 'column'
+                }}>
+                  <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-danger)', textTransform: 'uppercase' }}>
+                    Limit Exceeded
+                  </span>
+                  <p style={{ fontSize: '12px', color: 'var(--text-primary)', lineHeight: '1.4' }}>
+                    You have exceeded your monthly budget cap of <strong className="font-mono">{currency}{formatAmount(monthlyBudget, 0)}</strong> by <strong className="font-mono">{currency}{formatAmount(expenses - monthlyBudget)}</strong>. Restrict non-essential expenses immediately.
+                  </p>
+                </div>
+              )}
+
+              {/* General Advice */}
+              {transactions.length === 0 && (
+                <div style={{ fontSize: '12px', color: 'var(--text-secondary)', textAlign: 'center', padding: '12px' }}>
+                  Log transactions to generate customized spending analysis and insights.
+                </div>
+              )}
+            </div>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-            
-            {/* Condition 1: Deficit Warning */}
-            {netBalance < 0 && (
-              <div style={{ 
-                padding: '12px', 
-                borderRadius: '8px', 
-                background: 'var(--color-danger-bg)', 
-                border: '1px solid var(--color-danger-border)',
-                display: 'flex',
-                gap: '8px',
-                flexDirection: 'column'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-danger)', fontWeight: 600, fontSize: '12px' }}>
-                  <AlertTriangle size={14} />
-                  <span>Deficit Warning</span>
+          {/* Subscriptions Panel */}
+          <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)' }}>
+                <Calendar size={15} />
+                <h3 style={{ fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Subscriptions</h3>
+              </div>
+              <button 
+                onClick={() => setIsAddingSub(!isAddingSub)} 
+                className="glass-btn" 
+                style={{ padding: '2px 8px', fontSize: '11px' }}
+              >
+                {isAddingSub ? 'Cancel' : 'Add'}
+              </button>
+            </div>
+
+            {/* Add Subscription Dropdown Form */}
+            {isAddingSub && (
+              <form onSubmit={handleAddSub} style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '12px', border: '1px solid var(--border-subtle)', borderRadius: '8px', background: 'rgba(0,0,0,0.1)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Sub Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Netflix"
+                    className="glass-input"
+                    value={subName}
+                    onChange={(e) => setSubName(e.target.value)}
+                    style={{ padding: '6px 8px', fontSize: '12px' }}
+                    required
+                  />
                 </div>
-                <p style={{ fontSize: '12px', color: 'var(--text-primary)', lineHeight: '1.4' }}>
-                  Your paid expenses exceed income by <strong className="font-mono">{currency}{formatAmount(Math.abs(netBalance))}</strong>. Pause discretionary purchases and review upcoming unpaid dues to restore balance.
-                </p>
-              </div>
-            )}
-
-            {/* Condition 2: Surplus Advice */}
-            {netBalance > 0 && (
-              <div style={{ 
-                padding: '12px', 
-                borderRadius: '8px', 
-                background: 'var(--color-success-bg)', 
-                border: '1px solid var(--color-success-border)',
-                display: 'flex',
-                gap: '8px',
-                flexDirection: 'column'
-              }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '6px', color: 'var(--color-success)', fontWeight: 600, fontSize: '12px' }}>
-                  <TrendingUp size={14} />
-                  <span>Surplus Opportunity</span>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Cost ({currency})</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      placeholder="15.00"
+                      className="glass-input font-mono"
+                      value={subAmount}
+                      onChange={(e) => setSubAmount(e.target.value)}
+                      style={{ padding: '6px 8px', fontSize: '12px' }}
+                      required
+                    />
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <label style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Renewal Day</label>
+                    <input
+                      type="number"
+                      min="1"
+                      max="31"
+                      placeholder="15"
+                      className="glass-input font-mono"
+                      value={subRenewalDay}
+                      onChange={(e) => setSubRenewalDay(e.target.value)}
+                      style={{ padding: '6px 8px', fontSize: '12px' }}
+                      required
+                    />
+                  </div>
                 </div>
-                <p style={{ fontSize: '12px', color: 'var(--text-primary)', lineHeight: '1.4' }}>
-                  Great work! You have a surplus of <strong className="font-mono">{currency}{formatAmount(netBalance)}</strong>. We recommend allocating <strong className="font-mono">{currency}{formatAmount(netBalance * 0.5)} (50%)</strong> to your Investment Tracker to build compounding assets.
-                </p>
-              </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                  <label style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Category</label>
+                  <GlassSelect
+                    value={subCategory}
+                    onChange={setSubCategory}
+                    options={expenseCategories.map(cat => ({
+                      value: cat,
+                      label: cat,
+                      icon: <span style={{ display: 'flex', color: 'var(--text-secondary)' }}>{getFinanceCatIcon(cat, 'expense')}</span>
+                    }))}
+                  />
+                </div>
+                <button type="submit" className="glass-btn" style={{ width: '100%', fontSize: '12px', padding: '6px' }}>
+                  Save Subscription
+                </button>
+              </form>
             )}
 
-            {/* Top Category Spending Alert */}
-            {topCategoryAmount > 0 && (
-              <div style={{ 
-                padding: '12px', 
-                borderRadius: '8px', 
-                background: 'rgba(255,255,255,0.02)', 
-                border: '1px solid var(--border-subtle)',
-                display: 'flex',
-                gap: '6px',
-                flexDirection: 'column'
-              }}>
-                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--text-secondary)', textTransform: 'uppercase' }}>
-                  Spending Sector Alert
-                </span>
-                <p style={{ fontSize: '12px', color: 'var(--text-primary)', lineHeight: '1.4' }}>
-                  Your highest expense category is <strong>{topCategoryName}</strong> at <strong className="font-mono">{currency}{formatAmount(topCategoryAmount)}</strong> ({topCategoryPercent}% of total spends). Consider trimming subscription lines or consulting audits.
-                </p>
-              </div>
-            )}
+            {/* Subscriptions List */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '180px', overflowY: 'auto' }}>
+              {subscriptions.length === 0 ? (
+                <div style={{ padding: '12px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '12px' }}>
+                  No active subscriptions.
+                </div>
+              ) : (
+                subscriptions.map((sub) => (
+                  <SubscriptionItem
+                    key={sub.id}
+                    sub={sub}
+                    currency={currency}
+                    formatAmount={formatAmount}
+                    deleteSubscription={deleteSubscription}
+                    handleStartEditSub={handleStartEditSub}
+                  />
+                ))
+              )}
+            </div>
 
-            {/* Budget limit alert */}
-            {expenses > monthlyBudget && (
-              <div style={{ 
-                padding: '12px', 
-                borderRadius: '8px', 
-                background: 'var(--color-danger-bg)', 
-                border: '1px solid var(--color-danger-border)',
-                display: 'flex',
-                gap: '6px',
-                flexDirection: 'column'
-              }}>
-                <span style={{ fontSize: '11px', fontWeight: 600, color: 'var(--color-danger)', textTransform: 'uppercase' }}>
-                  Limit Exceeded
-                </span>
-                <p style={{ fontSize: '12px', color: 'var(--text-primary)', lineHeight: '1.4' }}>
-                  You have exceeded your monthly budget cap of <strong className="font-mono">{currency}{formatAmount(monthlyBudget, 0)}</strong> by <strong className="font-mono">{currency}{formatAmount(expenses - monthlyBudget)}</strong>. Restrict non-essential expenses immediately.
-                </p>
-              </div>
-            )}
-
-            {/* General Advice */}
-            {transactions.length === 0 && (
-              <div style={{ fontSize: '12px', color: 'var(--text-secondary)', textAlign: 'center', padding: '12px' }}>
-                Log transactions to generate customized spending analysis and insights.
+            {subscriptions.length > 0 && (
+              <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px', fontSize: '12px', color: 'var(--text-secondary)' }}>
+                <span>Total Commits:</span>
+                <strong className="font-mono" style={{ color: 'var(--text-pure)' }}>
+                  {currency}{formatAmount(totalSubCost)}/mo
+                </strong>
               </div>
             )}
           </div>
+
         </div>
 
         {/* Ledger Table */}
@@ -510,10 +1119,14 @@ export default function FinanceApp() {
                       <td style={{ padding: '12px' }}>
                         <span style={{ 
                           background: 'rgba(255, 255, 255, 0.04)', 
-                          padding: '2px 8px', 
+                          padding: '4px 8px', 
                           borderRadius: '4px',
-                          fontSize: '11px'
+                          fontSize: '11px',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px'
                         }}>
+                          {getFinanceCatIcon(t.category, t.type)}
                           {t.category}
                         </span>
                       </td>
@@ -540,7 +1153,7 @@ export default function FinanceApp() {
                       <td style={{ padding: '12px', textAlign: 'center' }}>
                         <button
                           onClick={() => toggleTransactionStatus(t.id)}
-                          className={`status-pill ${t.status === 'paid' || t.status === 'received' ? 'success' : 'warning'}`}
+                          className={`status-pill ${t.type === 'income' ? (t.status === 'due' ? 'info' : 'success') : (t.status === 'paid' ? 'danger' : 'warning')}`}
                           style={{ border: '1px solid transparent', cursor: 'pointer', outline: 'none' }}
                           title="Click to toggle status"
                         >
@@ -615,49 +1228,51 @@ export default function FinanceApp() {
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Category</label>
-              <select
-                className="glass-input"
+              <GlassSelect
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                style={{ cursor: 'pointer' }}
-              >
-                {availableCategories.map(cat => (
-                  <option key={cat} value={cat} style={{ background: '#121214', color: '#fff' }}>{cat}</option>
-                ))}
-              </select>
+                onChange={setCategory}
+                options={availableCategories.map(cat => ({
+                  value: cat,
+                  label: cat,
+                  icon: <span style={{ display: 'flex', color: 'var(--text-secondary)' }}>{getFinanceCatIcon(cat, type)}</span>
+                }))}
+              />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Account</label>
-              <select
-                className="glass-input"
-                value={accountId}
-                onChange={(e) => setAccountId(e.target.value)}
-                style={{ cursor: 'pointer' }}
-              >
-                {accounts.map(acc => (
-                  <option key={acc.id} value={acc.id} style={{ background: '#121214', color: '#fff' }}>{acc.name}</option>
-                ))}
-              </select>
+              <GlassSelect
+                value={accountId || (accounts[0]?.id || 'acc-bank')}
+                onChange={setAccountId}
+                options={accounts.map(acc => ({
+                  value: acc.id,
+                  label: acc.name,
+                  icon: <AccountLogo name={acc.name} />,
+                  extra: (
+                    <span className="font-mono" style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
+                      {((accountBalances[acc.id] || 0) < 0 ? '-' : '') + currency + formatAmount(Math.abs(accountBalances[acc.id] || 0))}
+                    </span>
+                  )
+                }))}
+              />
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
               <label style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Type & Status</label>
-              <select
-                className="glass-input"
+              <GlassSelect
                 value={`${type}-${status}`}
-                onChange={(e) => {
-                  const [newType, newStatus] = e.target.value.split('-');
+                onChange={(val) => {
+                  const [newType, newStatus] = val.split('-');
                   setType(newType);
                   setStatus(newStatus);
                   const firstCat = (db.finance.categories || []).find(c => c.type === newType)?.name || 'General';
                   setCategory(firstCat);
                 }}
-                style={{ cursor: 'pointer' }}
-              >
-                <option value="expense-paid" style={{ background: '#121214', color: '#fff' }}>Expense (Paid)</option>
-                <option value="expense-due" style={{ background: '#121214', color: '#fff' }}>Expense (Due)</option>
-                <option value="income-received" style={{ background: '#121214', color: '#fff' }}>Income (Received)</option>
-                <option value="income-due" style={{ background: '#121214', color: '#fff' }}>Income (Due)</option>
-              </select>
+                options={[
+                  { value: 'expense-paid', label: 'Expense (Paid)', icon: <TrendingDown size={12} style={{ color: 'var(--text-primary)' }} /> },
+                  { value: 'expense-due', label: 'Expense (Due)', icon: <Clock size={12} style={{ color: 'var(--color-warning)' }} /> },
+                  { value: 'income-received', label: 'Income (Received)', icon: <TrendingUp size={12} style={{ color: 'var(--color-success)' }} /> },
+                  { value: 'income-due', label: 'Income (Due)', icon: <Clock size={12} style={{ color: 'var(--color-warning)' }} /> }
+                ]}
+              />
             </div>
             <button type="submit" className="glass-btn" style={{ height: '40px', padding: '0 20px' }}>
               <Plus size={16} /> Add
@@ -690,27 +1305,13 @@ export default function FinanceApp() {
             {accounts.map(acc => {
               const bal = accountBalances[acc.id] || 0;
               return (
-                <div 
-                  key={acc.id} 
-                  style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center', 
-                    padding: '10px 12px', 
-                    borderRadius: '8px', 
-                    background: 'rgba(255,255,255,0.01)', 
-                    border: '1px solid var(--border-subtle)',
-                    fontSize: '13px'
-                  }}
-                >
-                  <span style={{ fontWeight: 500, color: 'var(--text-primary)' }}>{acc.name}</span>
-                  <span className="font-mono" style={{ 
-                    fontWeight: 600, 
-                    color: bal >= 0 ? 'var(--color-success)' : 'var(--color-danger)'
-                  }}>
-                    {bal < 0 ? '-' : ''}{currency}{formatAmount(Math.abs(bal))}
-                  </span>
-                </div>
+                <AccountSummaryItem 
+                  key={acc.id}
+                  acc={acc}
+                  bal={bal}
+                  currency={currency}
+                  formatAmount={formatAmount}
+                />
               );
             })}
             
@@ -816,127 +1417,7 @@ export default function FinanceApp() {
           </div>
         </div>
 
-        {/* Subscriptions Panel */}
-        <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--text-secondary)' }}>
-              <Calendar size={15} />
-              <h3 style={{ fontSize: '14px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Subscriptions</h3>
-            </div>
-            <button 
-              onClick={() => setIsAddingSub(!isAddingSub)} 
-              className="glass-btn" 
-              style={{ padding: '2px 8px', fontSize: '11px' }}
-            >
-              {isAddingSub ? 'Cancel' : 'Add'}
-            </button>
-          </div>
 
-          {/* Add Subscription Dropdown Form */}
-          {isAddingSub && (
-            <form onSubmit={handleAddSub} style={{ display: 'flex', flexDirection: 'column', gap: '10px', padding: '12px', border: '1px solid var(--border-subtle)', borderRadius: '8px', background: 'rgba(0,0,0,0.1)' }}>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <label style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Sub Name</label>
-                <input
-                  type="text"
-                  placeholder="e.g. Netflix"
-                  className="glass-input"
-                  value={subName}
-                  onChange={(e) => setSubName(e.target.value)}
-                  style={{ padding: '6px 8px', fontSize: '12px' }}
-                  required
-                />
-              </div>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <label style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Cost ({currency})</label>
-                  <input
-                    type="number"
-                    step="0.01"
-                    placeholder="15.00"
-                    className="glass-input font-mono"
-                    value={subAmount}
-                    onChange={(e) => setSubAmount(e.target.value)}
-                    style={{ padding: '6px 8px', fontSize: '12px' }}
-                    required
-                  />
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <label style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Renewal Day</label>
-                  <input
-                    type="number"
-                    min="1"
-                    max="31"
-                    placeholder="15"
-                    className="glass-input font-mono"
-                    value={subRenewalDay}
-                    onChange={(e) => setSubRenewalDay(e.target.value)}
-                    style={{ padding: '6px 8px', fontSize: '12px' }}
-                    required
-                  />
-                </div>
-              </div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                <label style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Category</label>
-                <select
-                  className="glass-input"
-                  value={subCategory}
-                  onChange={(e) => setSubCategory(e.target.value)}
-                  style={{ fontSize: '12px', cursor: 'pointer' }}
-                >
-                  {expenseCategories.map(cat => (
-                    <option key={cat} value={cat} style={{ background: '#121214' }}>{cat}</option>
-                  ))}
-                </select>
-              </div>
-              <button type="submit" className="glass-btn" style={{ width: '100%', fontSize: '12px', padding: '6px' }}>
-                Save Subscription
-              </button>
-            </form>
-          )}
-
-          {/* Subscriptions List */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '180px', overflowY: 'auto' }}>
-            {subscriptions.length === 0 ? (
-              <div style={{ padding: '12px', textAlign: 'center', color: 'var(--text-secondary)', fontSize: '12px' }}>
-                No active subscriptions.
-              </div>
-            ) : (
-              subscriptions.map((sub) => (
-                <div key={sub.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 10px', borderRadius: '8px', background: 'rgba(255,255,255,0.02)', border: '1px solid var(--border-subtle)', fontSize: '12px' }}>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                    <strong style={{ color: 'var(--text-pure)' }}>{sub.name}</strong>
-                    <span style={{ fontSize: '9px', color: 'var(--text-secondary)' }}>
-                      Renews on the {sub.renewalDay}th ({sub.category})
-                    </span>
-                  </div>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                    <span className="font-mono" style={{ fontWeight: 600, color: 'var(--text-primary)' }}>
-                      {currency}{formatAmount(sub.amount)}
-                    </span>
-                    <button 
-                      onClick={() => deleteSubscription(sub.id)}
-                      style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)' }}
-                      className="glass-btn-icon"
-                      title="Cancel Subscription tracking"
-                    >
-                      <Trash2 size={12} />
-                    </button>
-                  </div>
-                </div>
-              ))
-            )}
-          </div>
-
-          {subscriptions.length > 0 && (
-            <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: '1px solid var(--border-subtle)', paddingTop: '10px', fontSize: '12px', color: 'var(--text-secondary)' }}>
-              <span>Total Commits:</span>
-              <strong className="font-mono" style={{ color: 'var(--text-pure)' }}>
-                {currency}{formatAmount(totalSubCost)}/mo
-              </strong>
-            </div>
-          )}
-        </div>
 
         {/* Ledger Categories Management */}
         <div className="glass-card" style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -953,28 +1434,53 @@ export default function FinanceApp() {
             const nameInput = e.target.elements.catName;
             const typeInput = e.target.elements.catType;
             if (nameInput.value.trim()) {
-              addFinanceCategory(nameInput.value.trim(), typeInput.value);
+              addFinanceCategory(nameInput.value.trim(), typeInput.value, newCatIcon);
               nameInput.value = '';
+              setNewCatIcon(typeInput.value === 'income' ? 'credit-card' : 'wallet');
             }
           }} style={{ display: 'flex', gap: '8px', flexDirection: 'column', padding: '12px', border: '1px solid var(--border-subtle)', borderRadius: '8px', background: 'rgba(0,0,0,0.1)' }}>
-            <div style={{ display: 'flex', gap: '8px' }}>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
               <input
                 type="text"
                 name="catName"
                 placeholder="Category Name..."
                 className="glass-input"
-                style={{ padding: '6px 8px', fontSize: '12px', flexGrow: 1 }}
+                style={{ padding: '6px 8px', fontSize: '12px', flexGrow: 1, height: '38px' }}
                 required
               />
-              <select
-                name="catType"
-                className="glass-input"
-                style={{ fontSize: '12px', width: '90px', cursor: 'pointer' }}
-              >
-                <option value="expense" style={{ background: '#121214' }}>Expense</option>
-                <option value="income" style={{ background: '#121214' }}>Income</option>
-              </select>
+              <GlassSelect
+                value={newCatType}
+                onChange={(val) => {
+                  setNewCatType(val);
+                  setNewCatIcon(val === 'income' ? 'credit-card' : 'wallet');
+                }}
+                options={[
+                  { value: 'expense', label: 'Expense', icon: <TrendingDown size={12} /> },
+                  { value: 'income', label: 'Income', icon: <TrendingUp size={12} /> }
+                ]}
+                style={{ width: '110px' }}
+              />
             </div>
+            
+            {/* Icon Selector Grid */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <label style={{ fontSize: '10px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Select Icon</label>
+              <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap' }}>
+                {Object.keys(FINANCE_ICON_MAP).map(iconKey => (
+                  <button
+                    type="button"
+                    key={iconKey}
+                    onClick={() => setNewCatIcon(iconKey)}
+                    className={`glass-btn-icon ${newCatIcon === iconKey ? 'active' : ''}`}
+                    style={{ width: '22px', height: '22px', borderRadius: '4px', padding: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', background: newCatIcon === iconKey ? 'rgba(255,255,255,0.15)' : 'transparent' }}
+                    title={iconKey}
+                  >
+                    {React.cloneElement(FINANCE_ICON_MAP[iconKey], { size: 11 })}
+                  </button>
+                ))}
+              </div>
+            </div>
+
             <button type="submit" className="glass-btn" style={{ width: '100%', fontSize: '12px', padding: '6px' }}>
               Add Category
             </button>
@@ -988,7 +1494,10 @@ export default function FinanceApp() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {db.finance.categories?.filter(c => c.type === 'income').map(c => (
                   <div key={`inc-${c.name}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px', background: 'rgba(255,255,255,0.01)', borderRadius: '4px' }}>
-                    <span>{c.name}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ color: 'var(--text-secondary)', display: 'flex' }}>{getFinanceCatIcon(c.name, 'income')}</span>
+                      <span>{c.name}</span>
+                    </div>
                     {c.name !== 'General' && (
                       <button 
                         type="button"
@@ -1009,7 +1518,10 @@ export default function FinanceApp() {
               <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                 {db.finance.categories?.filter(c => c.type === 'expense').map(c => (
                   <div key={`exp-${c.name}`} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '4px 6px', background: 'rgba(255,255,255,0.01)', borderRadius: '4px' }}>
-                    <span>{c.name}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span style={{ color: 'var(--text-secondary)', display: 'flex' }}>{getFinanceCatIcon(c.name, 'expense')}</span>
+                      <span>{c.name}</span>
+                    </div>
                     {c.name !== 'General' && (
                       <button 
                         type="button"
@@ -1027,6 +1539,8 @@ export default function FinanceApp() {
         </div>
 
       </div>
+
+
 
       {/* Edit Transaction Modal Overlay */}
       {editingTx && (
@@ -1075,72 +1589,66 @@ export default function FinanceApp() {
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Category</label>
-                <select
-                  className="glass-input"
+                <GlassSelect
                   value={editCat}
-                  onChange={(e) => setEditCat(e.target.value)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  {editAvailableCategories.map(cat => (
-                    <option key={cat} value={cat} style={{ background: '#121214' }}>{cat}</option>
-                  ))}
-                </select>
+                  onChange={setEditCat}
+                  options={editAvailableCategories.map(cat => ({
+                    value: cat,
+                    label: cat,
+                    icon: <span style={{ display: 'flex', color: 'var(--text-secondary)' }}>{getFinanceCatIcon(cat, editType)}</span>
+                  }))}
+                />
               </div>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                 <label style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Account</label>
-                <select
-                  className="glass-input"
+                <GlassSelect
                   value={editAccountId}
-                  onChange={(e) => setEditAccountId(e.target.value)}
-                  style={{ cursor: 'pointer' }}
-                >
-                  {accounts.map(acc => (
-                    <option key={acc.id} value={acc.id} style={{ background: '#121214' }}>{acc.name}</option>
-                  ))}
-                </select>
+                  onChange={setEditAccountId}
+                  options={accounts.map(acc => ({
+                    value: acc.id,
+                    label: acc.name,
+                    icon: <AccountLogo name={acc.name} />,
+                    extra: (
+                      <span className="font-mono" style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
+                        {((accountBalances[acc.id] || 0) < 0 ? '-' : '') + currency + formatAmount(Math.abs(accountBalances[acc.id] || 0))}
+                      </span>
+                    )
+                  }))}
+                />
               </div>
 
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Type</label>
-                  <select
-                    className="glass-input"
+                  <GlassSelect
                     value={editType}
-                    onChange={(e) => {
-                      const newType = e.target.value;
-                      setEditType(newType);
-                      const firstCat = (db.finance.categories || []).find(c => c.type === newType)?.name || 'General';
+                    onChange={(val) => {
+                      setEditType(val);
+                      const firstCat = (db.finance.categories || []).find(c => c.type === val)?.name || 'General';
                       setEditCat(firstCat);
-                      setEditStatus(newType === 'income' ? 'received' : 'paid');
+                      setEditStatus(val === 'income' ? 'received' : 'paid');
                     }}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <option value="expense" style={{ background: '#121214' }}>Expense</option>
-                    <option value="income" style={{ background: '#121214' }}>Income</option>
-                  </select>
+                    options={[
+                      { value: 'expense', label: 'Expense', icon: <TrendingDown size={12} /> },
+                      { value: 'income', label: 'Income', icon: <TrendingUp size={12} /> }
+                    ]}
+                  />
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Status</label>
-                  <select
-                    className="glass-input"
+                  <GlassSelect
                     value={editStatus}
-                    onChange={(e) => setEditStatus(e.target.value)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    {editType === 'expense' ? (
-                      <>
-                        <option value="paid" style={{ background: '#121214' }}>Paid</option>
-                        <option value="due" style={{ background: '#121214' }}>Due</option>
-                      </>
-                    ) : (
-                      <>
-                        <option value="received" style={{ background: '#121214' }}>Received</option>
-                        <option value="due" style={{ background: '#121214' }}>Due</option>
-                      </>
-                    )}
-                  </select>
+                    onChange={setEditStatus}
+                    options={editType === 'expense' ? [
+                      { value: 'paid', label: 'Paid', icon: <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-success)' }} /> },
+                      { value: 'due', label: 'Due', icon: <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-warning)' }} /> }
+                    ] : [
+                      { value: 'received', label: 'Received', icon: <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-success)' }} /> },
+                      { value: 'due', label: 'Due', icon: <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-warning)' }} /> }
+                    ]}
+                  />
                 </div>
               </div>
 
@@ -1222,17 +1730,20 @@ export default function FinanceApp() {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Transfer Transactions to</label>
-                  <select
-                    className="glass-input"
+                  <GlassSelect
                     value={transferAccountId}
-                    onChange={(e) => setTransferAccountId(e.target.value)}
-                    style={{ cursor: 'pointer' }}
-                    required
-                  >
-                    {accounts.filter(a => a.id !== accountToDelete.id).map(acc => (
-                      <option key={acc.id} value={acc.id} style={{ background: '#121214', color: '#fff' }}>{acc.name}</option>
-                    ))}
-                  </select>
+                    onChange={setTransferAccountId}
+                    options={accounts.filter(a => a.id !== accountToDelete.id).map(acc => ({
+                      value: acc.id,
+                      label: acc.name,
+                      icon: <AccountLogo name={acc.name} />,
+                      extra: (
+                        <span className="font-mono" style={{ fontSize: '10px', color: 'var(--text-secondary)' }}>
+                          {((accountBalances[acc.id] || 0) < 0 ? '-' : '') + currency + formatAmount(Math.abs(accountBalances[acc.id] || 0))}
+                        </span>
+                      )
+                    }))}
+                  />
                 </div>
 
                 <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
@@ -1335,60 +1846,94 @@ export default function FinanceApp() {
                     Active Accounts
                   </h4>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '220px', overflowY: 'auto' }}>
-                    {accounts.map(acc => {
-                      const bal = accountBalances[acc.id] || 0;
-                      return (
-                        <div 
-                          key={acc.id} 
-                          style={{ 
-                            display: 'flex', 
-                            justifyContent: 'space-between', 
-                            alignItems: 'center', 
-                            padding: '10px 12px', 
-                            borderRadius: '8px', 
-                            background: 'rgba(255,255,255,0.02)', 
-                            border: '1px solid var(--border-subtle)', 
-                            fontSize: '12px' 
-                          }}
-                        >
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                            <strong style={{ color: 'var(--text-pure)', fontSize: '13px' }}>{acc.name}</strong>
-                            <div style={{ display: 'flex', gap: '10px', fontSize: '10px', color: 'var(--text-secondary)' }}>
-                              <span>Initial: <span className="font-mono">{currency}{formatAmount(acc.initialBalance)}</span></span>
-                              <span>•</span>
-                              <span>Current: <span className="font-mono" style={{ color: bal >= 0 ? 'var(--color-success)' : 'var(--color-danger)' }}>{bal < 0 ? '-' : ''}{currency}{formatAmount(Math.abs(bal))}</span></span>
-                            </div>
-                          </div>
-                          
-                          <div style={{ display: 'flex', gap: '6px' }}>
-                            <button 
-                              type="button"
-                              onClick={() => handleStartEditAccount(acc)}
-                              className="glass-btn-icon"
-                              style={{ color: 'var(--text-muted)' }}
-                              title="Edit Account"
-                            >
-                              <Edit2 size={12} />
-                            </button>
-                            <button 
-                              type="button"
-                              onClick={() => handleStartDeleteAccount(acc)}
-                              className="glass-btn-icon"
-                              style={{ color: 'var(--text-muted)' }}
-                              title="Delete Account"
-                            >
-                              <Trash2 size={12} />
-                            </button>
-                          </div>
-                        </div>
-                      );
-                    })}
+                      {accounts.map(acc => {
+                        const bal = accountBalances[acc.id] || 0;
+                        return (
+                          <ManageAccountItem
+                            key={acc.id}
+                            acc={acc}
+                            bal={bal}
+                            currency={currency}
+                            formatAmount={formatAmount}
+                            onEdit={() => handleStartEditAccount(acc)}
+                            onDelete={() => handleStartDeleteAccount(acc)}
+                          />
+                        );
+                      })}
                   </div>
                 </div>
 
               </div>
             )}
+          </div>
+        </div>
+      )}
 
+      {/* Edit Subscription Modal Overlay */}
+      {editingSub && (
+        <div className="cmd-overlay" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', paddingTop: 0 }} onClick={() => setEditingSub(null)}>
+          <div className="glass-panel" style={{ width: '420px', maxWidth: '90%', borderRadius: '14px', padding: '24px', display: 'flex', flexDirection: 'column', gap: '16px', boxShadow: 'var(--glass-shadow)' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '12px' }}>
+              <h3 style={{ fontSize: '16px' }}>Edit Subscription</h3>
+              <button onClick={() => setEditingSub(null)} style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-muted)', display: 'flex' }}><X size={18} /></button>
+            </div>
+
+            <form onSubmit={handleSaveEditSub} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Sub Name</label>
+                <input
+                  type="text"
+                  className="glass-input"
+                  value={editSubName}
+                  onChange={(e) => setEditSubName(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Cost ({currency})</label>
+                  <input
+                    type="number"
+                    step="0.01"
+                    className="glass-input font-mono"
+                    value={editSubAmount}
+                    onChange={(e) => setEditSubAmount(e.target.value)}
+                    required
+                  />
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                  <label style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Renewal Day</label>
+                  <input
+                    type="number"
+                    min="1"
+                    max="31"
+                    className="glass-input font-mono"
+                    value={editSubRenewalDay}
+                    onChange={(e) => setEditSubRenewalDay(e.target.value)}
+                    required
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <label style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Category</label>
+                <GlassSelect
+                  value={editSubCategory}
+                  onChange={setEditSubCategory}
+                  options={expenseCategories.map(cat => ({
+                    value: cat,
+                    label: cat,
+                    icon: <span style={{ display: 'flex', color: 'var(--text-secondary)' }}>{getFinanceCatIcon(cat, 'expense')}</span>
+                  }))}
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px', marginTop: '10px' }}>
+                <button type="button" onClick={() => setEditingSub(null)} className="glass-btn" style={{ flexGrow: 1 }}>Cancel</button>
+                <button type="submit" className="glass-btn active" style={{ flexGrow: 1 }}>Save Changes</button>
+              </div>
+            </form>
           </div>
         </div>
       )}

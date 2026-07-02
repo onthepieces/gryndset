@@ -93,7 +93,6 @@ input, button, textarea, select {
 .glass-card:hover {
   background: var(--bg-card-hover);
   border-color: var(--border-hover);
-  transform: translateY(-2px);
 }
 
 .glass-btn {
@@ -318,7 +317,6 @@ h3, h4 {
 .dock-item:hover {
   color: var(--text-pure);
   background: rgba(255, 255, 255, 0.06);
-  transform: translateY(-2px);
 }
 .dock-item.active {
   color: var(--text-pure);
@@ -710,7 +708,7 @@ h3, h4 {
   display: flex;
   flex-direction: column;
   gap: 6px;
-  max-width: 240px;
+  max-width: 380px;
 }
 
 .habit-checklist {
@@ -1740,9 +1738,7 @@ button:not(.glass-btn-icon):has(.lucide-trash-2):hover,
   border-radius: 12px;
 }
 
-.currency-card:hover {
-  transform: translateY(-2px) !important;
-}
+
 
 .currency-card.selected {
   background: rgba(255, 255, 255, 0.08);
@@ -2024,4 +2020,72 @@ button:not(.glass-btn-icon):has(.lucide-trash-2):hover,
     justify-content: center !important;
     margin-left: 0 !important;
   }
+}
+
+/* Calendar Grid for Habits History */
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.calendar-day-header {
+  text-align: center;
+  font-size: 10px;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  font-weight: 600;
+  padding-bottom: 6px;
+}
+
+.calendar-day {
+  aspect-ratio: 1;
+  border-radius: 8px;
+  border: 1px solid var(--border-subtle);
+  background: rgba(0, 0, 0, 0.2);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  cursor: pointer;
+  transition: var(--transition-smooth);
+  color: var(--text-secondary);
+}
+
+.calendar-day:hover {
+  border-color: var(--border-hover);
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.calendar-day.completed {
+  background: rgba(255, 255, 255, 0.15) !important;
+  color: var(--text-pure) !important;
+  font-weight: 600;
+}
+
+.calendar-day.today {
+  border-color: var(--text-pure);
+}
+
+.calendar-day.empty {
+  background: transparent !important;
+  border-color: transparent !important;
+  cursor: default;
+  pointer-events: none;
+}
+
+.calendar-day.not-scheduled {
+  opacity: 0.35;
+  border-style: dashed;
+}
+
+/* Hide scrollbar for Chrome, Safari and Opera */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+/* Hide scrollbar for IE, Edge and Firefox */
+.no-scrollbar {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
 }

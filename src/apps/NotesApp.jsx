@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useOS } from '../context/OSContext';
 import { 
   Plus, 
@@ -10,8 +10,93 @@ import {
   Eye, 
   Edit3, 
   Columns,
-  Tag
+  Tag,
+  X,
+  ChevronDown
 } from 'lucide-react';
+
+const GlassSelect = ({ value, onChange, options, style }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find(o => o.value === value) || options[0];
+
+  return (
+    <div ref={containerRef} style={{ position: 'relative', width: 'fit-content', ...style }}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="glass-btn"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          gap: '8px',
+          padding: '4px 8px',
+          fontSize: '12px',
+          height: '24px',
+          cursor: 'pointer',
+          background: 'transparent',
+          border: 'none'
+        }}
+      >
+        {selectedOption?.icon}
+        <span>{selectedOption?.label}</span>
+        <ChevronDown size={10} />
+      </button>
+
+      {isOpen && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 4px)',
+            left: 0,
+            background: 'rgba(18, 18, 20, 0.95)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: '8px',
+            padding: '4px',
+            zIndex: 100,
+            minWidth: '120px'
+          }}
+        >
+          {options.map(opt => (
+            <div
+              key={opt.value}
+              onClick={() => {
+                onChange(opt.value);
+                setIsOpen(false);
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '6px 8px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '11px',
+                color: opt.value === value ? 'var(--text-pure)' : 'var(--text-primary)',
+                background: opt.value === value ? 'rgba(255, 255, 255, 0.08)' : 'transparent'
+              }}
+            >
+              {opt.icon}
+              <span>{opt.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function NotesApp() {
   const { 
@@ -26,6 +111,7 @@ export default function NotesApp() {
   const [selectedNoteId, setSelectedNoteId] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFolder, setSelectedFolder] = useState('All');
+  const [selectedTag, setSelectedTag] = useState(null);
   const [isRenamingFolder, setIsRenamingFolder] = useState(false);
   const [renameInput, setRenameInput] = useState('');
   const [viewMode, setViewMode] = useState('split'); // 'split' | 'edit' | 'preview'
@@ -46,12 +132,34 @@ export default function NotesApp() {
     }
   }, [notes, selectedNoteId]);
 
+
+
+  // Unique tags list
+  const allTags = useMemo(() => {
+    const tagsSet = new Set();
+    notes.forEach(note => {
+      if (note.tags) {
+        note.tags.forEach(tag => tagsSet.add(tag));
+      }
+    });
+    return Array.from(tagsSet);
+  }, [notes]);
+
+  // Reset active tag filter if it's no longer present
+  useEffect(() => {
+    if (selectedTag && !allTags.includes(selectedTag)) {
+      setSelectedTag(null);
+    }
+  }, [allTags, selectedTag]);
+
   // Filtering
   const filteredNotes = notes.filter(note => {
     const matchesSearch = note.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-                          note.content.toLowerCase().includes(searchQuery.toLowerCase());
+                          note.content.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          (note.tags && note.tags.some(t => t.toLowerCase().includes(searchQuery.toLowerCase())));
     const matchesFolder = selectedFolder === 'All' || note.folder === selectedFolder;
-    return matchesSearch && matchesFolder;
+    const matchesTag = !selectedTag || (note.tags && note.tags.includes(selectedTag));
+    return matchesSearch && matchesFolder && matchesTag;
   });
 
   // Sort notes: pinned first, then by date updated
@@ -136,6 +244,29 @@ export default function NotesApp() {
           </button>
         </div>
 
+        {/* Tags Quick Filters */}
+        {allTags.length > 0 && (
+          <div style={{ display: 'flex', gap: '6px', overflowX: 'auto', paddingBottom: '4px', whiteSpace: 'nowrap' }} className="no-scrollbar">
+            <button
+              onClick={() => setSelectedTag(null)}
+              className={`glass-btn ${!selectedTag ? 'active' : ''}`}
+              style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '100px', flexShrink: 0 }}
+            >
+              All Tags
+            </button>
+            {allTags.map(tag => (
+              <button
+                key={tag}
+                onClick={() => setSelectedTag(tag === selectedTag ? null : tag)}
+                className={`glass-btn ${selectedTag === tag ? 'active' : ''}`}
+                style={{ fontSize: '10px', padding: '3px 8px', borderRadius: '100px', flexShrink: 0 }}
+              >
+                #{tag}
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Folder Select Dropdown */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '10px', justifyContent: 'space-between', width: '100%' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexGrow: 1 }}>
@@ -162,16 +293,15 @@ export default function NotesApp() {
                 <button type="button" onClick={() => setIsRenamingFolder(false)} className="glass-btn font-mono" style={{ padding: '2px 4px', fontSize: '9px' }}>X</button>
               </form>
             ) : (
-              <select
+              <GlassSelect
                 value={selectedFolder}
-                onChange={(e) => setSelectedFolder(e.target.value)}
-                className="glass-input"
-                style={{ height: '30px', padding: '0 26px 0 8px', fontSize: '12px', border: 'none', backgroundColor: 'transparent', cursor: 'pointer', width: '100%' }}
-              >
-                {folders.map(f => (
-                  <option key={f} value={f} style={{ background: '#121214', color: '#fff' }}>{f}</option>
-                ))}
-              </select>
+                onChange={(val) => setSelectedFolder(val)}
+                options={folders.map(f => ({
+                  value: f,
+                  label: f
+                }))}
+                style={{ width: '100%' }}
+              />
             )}
           </div>
 
@@ -347,32 +477,93 @@ export default function NotesApp() {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
                   {/* Folder */}
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Folder size={12} />
-                    <input
-                      type="text"
-                      value={activeNote.folder}
-                      onChange={(e) => updateNote(activeNote.id, { folder: e.target.value })}
-                      style={{ background: 'transparent', border: 'none', fontSize: '12px', borderBottom: '1px solid transparent', width: '90px' }}
-                      placeholder="Folder..."
-                      onBlur={(e) => {
-                        if (!e.target.value.trim()) updateNote(activeNote.id, { folder: 'General' });
+                    <Folder size={12} style={{ color: 'var(--text-secondary)' }} />
+                    <GlassSelect
+                      value={activeNote.folder || 'General'}
+                      onChange={(val) => {
+                        if (val === '__new__') {
+                          const name = window.prompt('Enter new folder name:');
+                          if (name && name.trim()) {
+                            updateNote(activeNote.id, { folder: name.trim() });
+                          }
+                        } else {
+                          updateNote(activeNote.id, { folder: val });
+                        }
                       }}
+                      options={[
+                        ...folders.filter(f => f !== 'All').map(f => ({
+                          value: f,
+                          label: f
+                        })),
+                        {
+                          value: '__new__',
+                          label: '+ Create New...',
+                          icon: <span style={{ color: 'var(--color-info)' }}>+</span>
+                        }
+                      ]}
+                      style={{ fontSize: '12px' }}
                     />
                   </div>
 
                   {/* Tags */}
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <Tag size={12} />
-                    <input
-                      type="text"
-                      value={activeNote.tags.join(', ')}
-                      onChange={(e) => {
-                        const parsed = e.target.value.split(',').map(s => s.trim()).filter(Boolean);
-                        updateNote(activeNote.id, { tags: parsed });
-                      }}
-                      style={{ background: 'transparent', border: 'none', fontSize: '12px', width: '150px' }}
-                      placeholder="Tags (comma separated)..."
-                    />
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                    <Tag size={12} style={{ color: 'var(--text-secondary)' }} />
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                      {activeNote.tags && activeNote.tags.map(tag => (
+                        <span 
+                          key={tag} 
+                          className="status-pill info" 
+                          style={{ 
+                            fontSize: '11px', 
+                            padding: '2px 8px', 
+                            display: 'inline-flex', 
+                            alignItems: 'center', 
+                            gap: '4px',
+                            textTransform: 'none',
+                            letterSpacing: 'normal'
+                          }}
+                        >
+                          #{tag}
+                          <X 
+                            size={10} 
+                            style={{ cursor: 'pointer', opacity: 0.7 }} 
+                            onClick={() => {
+                              const updated = activeNote.tags.filter(t => t !== tag);
+                              updateNote(activeNote.id, { tags: updated });
+                            }} 
+                            onMouseEnter={(e) => e.currentTarget.style.opacity = 1}
+                            onMouseLeave={(e) => e.currentTarget.style.opacity = 0.7}
+                          />
+                        </span>
+                      ))}
+                      <input
+                        type="text"
+                        placeholder="+ tag..."
+                        className="glass-input"
+                        style={{ 
+                          background: 'rgba(255,255,255,0.03)', 
+                          border: '1px solid var(--border-subtle)', 
+                          borderRadius: '100px', 
+                          padding: '2px 8px', 
+                          fontSize: '11px', 
+                          width: '70px', 
+                          height: '22px', 
+                          outline: 'none',
+                          boxSizing: 'border-box'
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' || e.key === ',') {
+                            e.preventDefault();
+                            const val = e.target.value.trim().replace(/,/g, '');
+                            if (val && (!activeNote.tags || !activeNote.tags.includes(val))) {
+                              const updated = [...(activeNote.tags || []), val];
+                              updateNote(activeNote.id, { tags: updated });
+                            }
+                            e.target.value = '';
+                          }
+                        }}
+                      />
+                    </div>
                   </div>
                 </div>
 

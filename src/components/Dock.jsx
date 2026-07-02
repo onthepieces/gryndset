@@ -6,11 +6,12 @@ import {
   FolderKanban, 
   Flame, 
   FileText, 
-  LineChart, 
+  FileSpreadsheet,
   Download, 
   Upload,
   Database,
-  Settings
+  Settings,
+  Users
 } from 'lucide-react';
 
 export default function Dock() {
@@ -20,10 +21,11 @@ export default function Dock() {
   const navItems = [
     { id: 'dashboard', label: 'Dashboard', icon: <LayoutGrid size={20} /> },
     { id: 'finance', label: 'Finance', icon: <DollarSign size={20} /> },
+    { id: 'crm', label: 'CRM', icon: <Users size={20} /> },
     { id: 'projects', label: 'Projects', icon: <FolderKanban size={20} /> },
     { id: 'habits', label: 'Habits', icon: <Flame size={20} /> },
     { id: 'notes', label: 'Notes', icon: <FileText size={20} /> },
-    { id: 'investments', label: 'Investments', icon: <LineChart size={20} /> },
+    { id: 'invoices', label: 'Invoices', icon: <FileSpreadsheet size={20} /> },
     { id: 'settings', label: 'Settings', icon: <Settings size={20} /> }
   ];
 

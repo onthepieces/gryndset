@@ -9,8 +9,94 @@ import {
   Calendar, 
   User, 
   ArrowLeft,
-  X
+  X,
+  ChevronDown
 } from 'lucide-react';
+
+const GlassSelect = ({ value, onChange, options, style }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = React.useRef(null);
+
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (containerRef.current && !containerRef.current.contains(event.target)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find(o => o.value === value) || options[0];
+
+  return (
+    <div ref={containerRef} style={{ position: 'relative', width: 'fit-content', ...style }}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="glass-btn"
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          gap: '8px',
+          padding: '6px 12px',
+          fontSize: '12px',
+          height: '34px',
+          cursor: 'pointer',
+          width: '100%'
+        }}
+      >
+        <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          {selectedOption?.icon}
+          <span>{selectedOption?.label}</span>
+        </span>
+        <ChevronDown size={12} />
+      </button>
+
+      {isOpen && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 4px)',
+            left: 0,
+            background: 'rgba(18, 18, 20, 0.95)',
+            backdropFilter: 'blur(10px)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: '8px',
+            padding: '4px',
+            zIndex: 100,
+            minWidth: '130px'
+          }}
+        >
+          {options.map(opt => (
+            <div
+              key={opt.value}
+              onClick={() => {
+                onChange(opt.value);
+                setIsOpen(false);
+              }}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '6px 8px',
+                borderRadius: '6px',
+                cursor: 'pointer',
+                fontSize: '11px',
+                color: opt.value === value ? 'var(--text-pure)' : 'var(--text-primary)',
+                background: opt.value === value ? 'rgba(255, 255, 255, 0.08)' : 'transparent'
+              }}
+            >
+              {opt.icon}
+              <span>{opt.label}</span>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function ProjectsApp() {
   const { 
@@ -439,29 +525,28 @@ export default function ProjectsApp() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Project</label>
-                  <select
-                    className="glass-input"
+                  <GlassSelect
                     value={taskProj}
-                    onChange={(e) => setTaskProj(e.target.value)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    {projects.map(p => (
-                      <option key={p} value={p} style={{ background: '#121214' }}>{p}</option>
-                    ))}
-                  </select>
+                    onChange={(val) => setTaskProj(val)}
+                    options={projects.map(p => ({
+                      value: p,
+                      label: p
+                    }))}
+                    style={{ width: '100%' }}
+                  />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Priority</label>
-                  <select
-                    className="glass-input"
+                  <GlassSelect
                     value={taskPriority}
-                    onChange={(e) => setTaskPriority(e.target.value)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <option value="low" style={{ background: '#121214' }}>Low Priority</option>
-                    <option value="medium" style={{ background: '#121214' }}>Medium Priority</option>
-                    <option value="high" style={{ background: '#121214' }}>High Priority</option>
-                  </select>
+                    onChange={(val) => setTaskPriority(val)}
+                    options={[
+                      { value: 'low', label: 'Low Priority', icon: <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-success)' }} /> },
+                      { value: 'medium', label: 'Medium Priority', icon: <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-warning)' }} /> },
+                      { value: 'high', label: 'High Priority', icon: <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-danger)' }} /> }
+                    ]}
+                    style={{ width: '100%' }}
+                  />
                 </div>
               </div>
 
@@ -485,9 +570,9 @@ export default function ProjectsApp() {
                     className="glass-input"
                     value={subtaskInput}
                     onChange={(e) => setSubtaskInput(e.target.value)}
-                    style={{ padding: '6px 12px', fontSize: '12px' }}
+                    style={{ padding: '6px 12px', fontSize: '12px', flex: 1 }}
                   />
-                  <button type="button" onClick={handleAddTempSubtask} className="glass-btn" style={{ padding: '6px 12px', fontSize: '12px' }}>Add Step</button>
+                  <button type="button" onClick={handleAddTempSubtask} className="glass-btn" style={{ padding: '6px 12px', fontSize: '12px', whiteSpace: 'nowrap' }}>Add Step</button>
                 </div>
 
                 {tempSubtasks.length > 0 && (
@@ -536,29 +621,28 @@ export default function ProjectsApp() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Project</label>
-                  <select
-                    className="glass-input"
+                  <GlassSelect
                     value={editTaskProj}
-                    onChange={(e) => setEditTaskProj(e.target.value)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    {projects.map(p => (
-                      <option key={p} value={p} style={{ background: '#121214' }}>{p}</option>
-                    ))}
-                  </select>
+                    onChange={(val) => setEditTaskProj(val)}
+                    options={projects.map(p => ({
+                      value: p,
+                      label: p
+                    }))}
+                    style={{ width: '100%' }}
+                  />
                 </div>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                   <label style={{ fontSize: '11px', color: 'var(--text-secondary)', textTransform: 'uppercase' }}>Priority</label>
-                  <select
-                    className="glass-input"
+                  <GlassSelect
                     value={editTaskPriority}
-                    onChange={(e) => setEditTaskPriority(e.target.value)}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    <option value="low" style={{ background: '#121214' }}>Low Priority</option>
-                    <option value="medium" style={{ background: '#121214' }}>Medium Priority</option>
-                    <option value="high" style={{ background: '#121214' }}>High Priority</option>
-                  </select>
+                    onChange={(val) => setEditTaskPriority(val)}
+                    options={[
+                      { value: 'low', label: 'Low Priority', icon: <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-success)' }} /> },
+                      { value: 'medium', label: 'Medium Priority', icon: <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-warning)' }} /> },
+                      { value: 'high', label: 'High Priority', icon: <span style={{ display: 'inline-block', width: '6px', height: '6px', borderRadius: '50%', background: 'var(--color-danger)' }} /> }
+                    ]}
+                    style={{ width: '100%' }}
+                  />
                 </div>
               </div>
 
@@ -582,9 +666,9 @@ export default function ProjectsApp() {
                     className="glass-input"
                     value={editSubtaskInput}
                     onChange={(e) => setEditSubtaskInput(e.target.value)}
-                    style={{ padding: '6px 12px', fontSize: '12px' }}
+                    style={{ padding: '6px 12px', fontSize: '12px', flex: 1 }}
                   />
-                  <button type="button" onClick={handleAddEditSubtask} className="glass-btn" style={{ padding: '6px 12px', fontSize: '12px' }}>Add Step</button>
+                  <button type="button" onClick={handleAddEditSubtask} className="glass-btn" style={{ padding: '6px 12px', fontSize: '12px', whiteSpace: 'nowrap' }}>Add Step</button>
                 </div>
 
                 {editTaskSubtasks.length > 0 && (
@@ -759,7 +843,7 @@ function TaskCard({ task, onMove, onDelete, onToggleSubtask, onAddSubtask, onEdi
               className="glass-input"
               value={cardSubtaskInput}
               onChange={(e) => setCardSubtaskInput(e.target.value)}
-              style={{ padding: '6px 10px', fontSize: '12px', flexGrow: 1 }}
+              style={{ padding: '6px 10px', fontSize: '12px', flex: 1 }}
             />
             <button 
               type="button" 
@@ -770,7 +854,7 @@ function TaskCard({ task, onMove, onDelete, onToggleSubtask, onAddSubtask, onEdi
                 }
               }} 
               className="glass-btn" 
-              style={{ padding: '6px 12px', fontSize: '12px' }}
+              style={{ padding: '6px 12px', fontSize: '12px', whiteSpace: 'nowrap' }}
             >
               Add
             </button>

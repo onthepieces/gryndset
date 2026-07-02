@@ -9,8 +9,9 @@ import FinanceApp from './apps/FinanceApp';
 import ProjectsApp from './apps/ProjectsApp';
 import HabitsApp from './apps/HabitsApp';
 import NotesApp from './apps/NotesApp';
-import InvestmentsApp from './apps/InvestmentsApp';
+import InvoiceApp from './apps/InvoiceApp';
 import SettingsApp from './apps/SettingsApp';
+import CRMApp from './apps/CRMApp';
 import OnboardingScreen from './components/OnboardingScreen';
 
 import './App.css';
@@ -33,8 +34,10 @@ function AppContent() {
         return <HabitsApp />;
       case 'notes':
         return <NotesApp />;
-      case 'investments':
-        return <InvestmentsApp />;
+      case 'invoices':
+        return <InvoiceApp />;
+      case 'crm':
+        return <CRMApp />;
       case 'settings':
         return <SettingsApp />;
       default:

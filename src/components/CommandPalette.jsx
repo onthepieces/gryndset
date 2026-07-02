@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useOS } from '../context/OSContext';
-import { Search, Compass, Zap, FileText, CheckCircle, Award } from 'lucide-react';
+import { Search, Compass, Zap, FileText, CheckCircle, Award, Users } from 'lucide-react';
 
 export default function CommandPalette() {
   const { 
@@ -9,6 +9,7 @@ export default function CommandPalette() {
     setActiveApp, 
     db, 
     addNote, 
+    addInvoice,
     triggerToast 
   } = useOS();
   
@@ -49,13 +50,42 @@ export default function CommandPalette() {
     { type: 'nav', id: 'projects', label: 'Go to Project Kanban', detail: 'Manage boards, folders, tasks, subtasks', icon: <Compass size={16} /> },
     { type: 'nav', id: 'habits', label: 'Go to Habit Checklist', detail: 'Streaks, grids, habit categories', icon: <Compass size={16} /> },
     { type: 'nav', id: 'notes', label: 'Go to Notes Organizer', detail: 'Markdown editor, folder search', icon: <Compass size={16} /> },
-    { type: 'nav', id: 'investments', label: 'Go to Investments Manager', detail: 'Stock/Crypto trades, average cost', icon: <Compass size={16} /> }
+    { type: 'nav', id: 'invoices', label: 'Go to Invoice Generator', detail: 'Create, print, and track client invoices', icon: <Compass size={16} /> },
+    { type: 'nav', id: 'crm', label: 'Go to Freelance CRM', detail: 'Manage clients, invoices, and contact data', icon: <Compass size={16} /> }
   ];
 
   const actionCommands = [
+    { type: 'action', id: 'new-client', label: 'Quick Action: Add New Client', detail: 'Open CRM and add a client profile', icon: <Zap size={16} />, action: () => {
+      setActiveApp('crm');
+      setIsSearchOpen(false);
+      triggerToast('Click "+ New Client" to create a new profile', 'info');
+    }},
     { type: 'action', id: 'new-note', label: 'Quick Action: Create New Note', detail: 'Open Notes App and generate a blank page', icon: <Zap size={16} />, action: () => {
       const id = addNote('Untitled Note', '', [], 'General');
       setActiveApp('notes');
+      setIsSearchOpen(false);
+    }},
+    { type: 'action', id: 'new-invoice', label: 'Quick Action: Create New Invoice', detail: 'Open Invoice desk and generate a draft', icon: <Zap size={16} />, action: () => {
+      const nextNum = db.invoices && db.invoices.length > 0 
+        ? 'INV-' + (parseInt(db.invoices[0].invoiceNumber.replace('INV-', '')) + 1).toString().padStart(3, '0')
+        : 'INV-001';
+      addInvoice({
+        invoiceNumber: nextNum,
+        issueDate: new Date().toISOString().split('T')[0],
+        dueDate: new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+        clientName: '',
+        clientEmail: '',
+        clientAddress: '',
+        billerName: db.settings?.username || 'Freelancer',
+        billerEmail: '',
+        billerAddress: '',
+        items: [{ description: '', rate: '', quantity: '' }],
+        taxRate: 0,
+        discountRate: 0,
+        status: 'Draft',
+        notes: ''
+      });
+      setActiveApp('invoices');
       setIsSearchOpen(false);
     }},
     { type: 'action', id: 'quick-finance', label: 'Quick Action: Log Transaction', detail: 'Open Finance ledger and prompt entry', icon: <Zap size={16} />, action: () => {
