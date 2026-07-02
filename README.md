@@ -1,5 +1,5 @@
 # gryndset // Unified Freelancer Dashboard
-> **Own your grind.**
+## **Own your grind.**
 
 [![Vite](https://img.shields.io/badge/Vite-8.0-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vite.dev)
 [![React](https://img.shields.io/badge/React-19.0-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev)
@@ -14,7 +14,7 @@ A premium, local-first dashboard shell built for freelancers. **gryndset** is st
 > **Strictly Local Storage & Privacy**
 > This application is strictly local-first. All your data is stored directly in your browser's local storage (`localStorage`). No accounts are required, and no data is ever transmitted, tracked, or saved to any cloud servers. Since your data lives only in your browser, make sure to regularly export backups from the **Settings** panel to safeguard your records.
 
-For detailed guides, usage instructions, and features of each tool, check out the **[Documentation Wiki](wiki/Home.md)** folder in this repository.
+For detailed guides, usage instructions, and features of each tool, check out the **[Documentation](https://gryndset.framer.ai)** folder in this repository.
 
 ---
 
